@@ -366,4 +366,244 @@
 
         // 根據日期和當前 Tab 決定是否顯示航班卡片
         const shouldShowFlightCard = computed(() => {
-          const dayType = days[selectedDay.
+          const dayType = days[selectedDay.value].type;
+          return (currentTab.value === '行前' || currentTab.value === '行程') && (dayType === 'flight-out' || dayType === 'flight-return');
+        });
+
+        // local inputs and lists (unchanged)
+        const newItemText = ref('');
+        const newFood = ref('');
+        const newSpot = ref('');
+        const newShoppingItem = ref(''); 
+        const newPreNote = ref(''); 
+        
+        const foodList = ref(['千暉鵝肉店','雅香石頭火鍋','梁山泊小籠湯包']);
+        const spots = ref(['象山','士林夜市']);
+        const shoppingList = ref([
+            { name:'鳳梨酥 (佳德)', isDone: false },
+            { name:'面膜 (藥妝店)', isDone: false },
+            { name:'肉乾', isDone: true }
+        ]); 
+        const preTripNotes = ref([
+             { name:'兌換台幣', isDone: true },
+             { name:'確認住宿預約單', isDone: false },
+             { name:'購買 SIM 卡', isDone: false },
+             { name:'護照影本備份', isDone: true }
+        ]);
+
+
+        // exchange rate & weather (unchanged logic)
+        const rate = ref(null);
+        const lastRateUpdate = ref(null);
+        
+        const formattedRate = computed(() => {
+            return rate.value !== null ? rate.value : '...';
+        });
+
+        const lastRateUpdateLabel = computed(() => {
+          if (!lastRateUpdate.value) return '—';
+          const d = new Date(lastRateUpdate.value);
+          return d.toLocaleTimeString('zh-HK');
+        });
+
+        const weather = reactive({ temp:'--', desc:'載入中...', rain:0, code:0 });
+        const weatherIconClass = computed(() => {
+          const code = weather.code || 0;
+          if (code >= 95) return 'ph ph-cloud-lightning-rain';
+          if (code >= 80) return 'ph ph-cloud-lightning-rain';
+          if (code >= 50) return 'ph ph-cloud-rain';
+          if (code > 2) return 'ph ph-cloud';
+          return 'ph ph-sun';
+        });
+
+        // -- functions --
+        function selectDay(i){ selectedDay.value = i; }
+        function addItineraryItem(){
+          if (!newItemText.value.trim()) return;
+          itinerary[selectedDay.value].push({ title:newItemText.value.trim(), note:'', time:'' }); 
+          newItemText.value = '';
+        }
+        function removeItineraryItem(idx){ itinerary[selectedDay.value].splice(idx,1); }
+        function addFood(){
+          if (!newFood.value.trim()) return;
+          foodList.value.push(newFood.value.trim());
+          newFood.value = '';
+        }
+        function removeFood(i){ foodList.value.splice(i,1); }
+        function addSpot(){ if (!newSpot.value.trim()) return; spots.value.push(newSpot.value.trim()); newSpot.value=''; }
+        function removeSpot(i){ spots.value.splice(i,1); }
+        function addShoppingItem(){
+            if (!newShoppingItem.value.trim()) return;
+            shoppingList.value.push({ name: newShoppingItem.value.trim(), isDone: false });
+            newShoppingItem.value = '';
+        }
+        function removeShoppingItem(i){ shoppingList.value.splice(i,1); }
+        function addPreNote(){
+            if (!newPreNote.value.trim()) return;
+            preTripNotes.value.push({ name: newPreNote.value.trim(), isDone: false });
+            newPreNote.value = '';
+        }
+        function removePreNote(i){ preTripNotes.value.splice(i,1); }
+
+        function openAddModal(){
+          // 檢查輸入欄位是否有內容，如果有，則觸發新增
+          if (currentTab.value === '行前') {
+            if (newPreNote.value) addPreNote();
+          } else if (currentTab.value === '行程') {
+            if (newItemText.value) addItineraryItem(); 
+          } else if (currentTab.value === '美食') {
+            if (newFood.value) addFood();
+          } else if (currentTab.value === '景點') {
+            if (newSpot.value) addSpot();
+          } else if (currentTab.value === '購物') {
+             if (newShoppingItem.value) addShoppingItem();
+          } else {
+             // 如果按鈕在非新增頁面被點擊，則切換回行程頁 (預設行為)
+             currentTab.value = '行程';
+          }
+        }
+
+        // 使用 ExchangeRate-API 的免費公共端點
+        async function fetchRate(){
+          const API_URL = 'https://open.er-api.com/v6/latest/TWD'; 
+          
+          try {
+            const res = await fetch(API_URL);
+            
+            if (!res.ok) {
+                console.error('匯率 API 請求失敗，狀態碼:', res.status);
+                rate.value = null; 
+                return;
+            }
+
+            const data = await res.json();
+            if (data && data.rates && data.rates.HKD){
+              rate.value = (data.rates.HKD).toFixed(3);
+              lastRateUpdate.value = new Date().toISOString();
+            } else {
+              console.warn('匯率 API 響應格式錯誤或缺少 HKD 數據');
+              rate.value = null;
+            }
+          } catch (e){ 
+            console.error('匯率獲取發生錯誤 (網路或 API 問題):', e); 
+            rate.value = null;
+          }
+        }
+
+        // fetchWeather (unchanged logic)
+        async function fetchWeather(){
+          try {
+            const lat = 25.0330, lon = 121.5654;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=precipitation_probability&timezone=Asia%2FTaipei`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.current_weather){
+              weather.temp = Math.round(data.current_weather.temperature);
+              weather.code = data.current_weather.weathercode || 0;
+              weather.desc = describeWeather(weather.code);
+              if (data.hourly && data.hourly.precipitation_probability){
+                const nowTime = data.current_weather.time.slice(0, 13);
+                const nowIdx = data.hourly.time.findIndex(t => t.startsWith(nowTime)); 
+                const prob = (nowIdx >= 0) ? data.hourly.precipitation_probability[nowIdx] : (data.hourly.precipitation_probability[0] || 0);
+                weather.rain = Math.round(prob);
+              } else weather.rain = 0;
+            }
+          } catch(e){ console.warn('weather fail', e); weather.desc='無法取得'; }
+        }
+
+        function describeWeather(code){
+          if (code >= 95) return '雷暴';
+          if (code >= 80) return '陣雨';
+          if (code >= 60) return '持續降雨';
+          if (code >= 50) return '毛毛雨';
+          if (code >= 40) return '霧/冰霧';
+          if (code >= 30) return '沙塵暴';
+          if (code >= 20) return '局部陣雨';
+          if (code > 2) return '多雲';
+          if (code === 2) return '局部多雲';
+          return '晴朗';
+        }
+
+        // localStorage persistence (unchanged logic)
+        const STORAGE_KEY = 'emenu-taipei-data-v1';
+
+        function saveAll(){
+          const payload = {
+            currentTab: currentTab.value,
+            selectedDay: selectedDay.value,
+            itinerary: JSON.parse(JSON.stringify(itinerary)),
+            foodList: foodList.value,
+            spots: spots.value,
+            shoppingList: shoppingList.value,
+            preTripNotes: preTripNotes.value, 
+            flights,
+            rate: rate.value,
+            weather: JSON.parse(JSON.stringify(weather))
+          };
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); }
+          catch(e){ console.warn('save fail', e); }
+        }
+
+        function loadAll(){
+          try{
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const p = JSON.parse(raw);
+            if (p.currentTab) currentTab.value = p.currentTab;
+            if (typeof p.selectedDay === 'number') selectedDay.value = p.selectedDay;
+            if (p.itinerary && Array.isArray(p.itinerary)){
+              for (let i=0;i<4;i++){
+                itinerary[i].splice(0, itinerary[i].length, ...(p.itinerary[i] || []));
+              }
+            }
+            if (p.foodList) { foodList.value = p.foodList; }
+            if (p.spots) { spots.value = p.spots; }
+            if (p.shoppingList && Array.isArray(p.shoppingList)) { shoppingList.value = p.shoppingList; }
+            if (p.preTripNotes && Array.isArray(p.preTripNotes)) { preTripNotes.value = p.preTripNotes; } 
+
+            if (p.rate) rate.value = p.rate;
+            if (p.weather) {
+              weather.temp = p.weather.temp || weather.temp;
+              weather.desc = p.weather.desc || weather.desc;
+              weather.rain = p.weather.rain || weather.rain;
+              weather.code = p.weather.code || weather.code;
+            }
+          } catch(e){ console.warn('load fail', e); }
+        }
+
+        // set up periodic refresh for rate & weather
+        onMounted(()=>{
+          loadAll();
+          fetchRate(); 
+          fetchWeather();
+          setInterval(fetchRate, 10 * 60 * 1000);
+          setInterval(fetchWeather, 10 * 60 * 1000);
+        });
+
+        // watch important pieces and auto-save
+        watch([currentTab, selectedDay, () => itinerary.map(d=>d.length), foodList, spots, shoppingList, preTripNotes, rate, () => weather.temp], () => {
+          saveAll();
+        }, { deep:true });
+
+        // expose for template
+        return {
+          tabs, currentTab,
+          days, selectedDay, selectDay,
+          itinerary, newItemText, addItineraryItem, removeItineraryItem, 
+          foodList, newFood, addFood, removeFood,
+          spots, newSpot, addSpot, removeSpot,
+          shoppingList, newShoppingItem, addShoppingItem, removeShoppingItem, 
+          preTripNotes, newPreNote, addPreNote, removePreNote, 
+          openAddModal,
+          
+          activeFlight, 
+          shouldShowFlightCard, 
+          
+          rate, formattedRate, lastRateUpdateLabel, 
+          weather, weatherIconClass
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
