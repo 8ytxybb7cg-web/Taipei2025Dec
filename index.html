@@ -36,6 +36,22 @@
         text-decoration: line-through;
         color: #6b7280; /* Tailwind gray-500 */
     }
+
+    /* 🎯 調整 Dock 樣式以模擬 iPhone Dock */
+    .iphone-dock {
+        background: rgba(255, 255, 255, 0.6); /* 更透明 */
+        backdrop-filter: blur(10px);
+        border-radius: 30px; /* 更圓潤 */
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        padding: 0.75rem 1.5rem; /* 增加內邊距 */
+        border: 1px solid rgba(255, 255, 255, 0.3); /* 輕微邊框 */
+    }
+
+    /* 調整 Dock 內圖標的大小 */
+    .iphone-dock button i {
+        font-size: 1.5rem; /* 圖標稍大 */
+    }
+
   </style>
 </head>
 
@@ -43,7 +59,7 @@
   <div id="app" class="relative min-h-screen flex flex-col">
 
     <div class="absolute inset-0 z-0 pointer-events-none">
-      <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=2000&q=80"
+      <img src="./IMG_6732.jpeg?auto=format&fit=crop&w=2000&q=80"
            class="w-full h-full object-cover opacity-100" alt="Taipei Night">
       <div class="absolute inset-0 bg-gradient-to-b from-slate-100/75 via-slate-100/55 to-slate-200/85"></div>
     </div>
@@ -146,14 +162,6 @@
       </div>
 
       <div class="rounded-2xl p-3 bg-white/85 border border-white/30 backdrop-blur shadow">
-
-        <div class="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
-          <button v-for="t in tabs" :key="t" @click="currentTab = t"
-                  class="flex-1 py-2 rounded-lg text-sm font-medium flex-shrink-0"
-                  :class="currentTab === t ? 'bg-sky-100 text-sky-800' : 'bg-white/60 text-gray-700'">
-            {{ t }}
-          </button>
-        </div>
 
         <div>
           
@@ -280,17 +288,16 @@
           </div>
       </div>
 
-      <div class="h-12"></div>
-    </main>
+      <div class="h-24"></div> </main>
 
     <nav class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-      <div class="bg-white/90 rounded-full px-4 py-2 shadow-xl flex gap-6 items-center backdrop-blur-sm">
-        <button @click="currentTab='行前'" :class="currentTab==='行前' ? 'text-sky-600' : 'text-gray-500'" title="行前"><i class="ph ph-list-checks text-xl"></i></button>
-        <button @click="currentTab='行程'" :class="currentTab==='行程' ? 'text-sky-600' : 'text-gray-500'" title="行程"><i class="ph ph-map-pin text-xl"></i></button>
-        <button @click="currentTab='美食'" :class="currentTab==='美食' ? 'text-sky-600' : 'text-gray-500'" title="美食"><i class="ph ph-knife text-xl"></i></button>
-        <button @click="currentTab='購物'" :class="currentTab==='購物' ? 'text-sky-600' : 'text-gray-500'" title="購物"><i class="ph ph-shopping-bag text-xl"></i></button>
-        <button @click="currentTab='景點'" :class="currentTab==='景點' ? 'text-sky-600' : 'text-gray-500'" title="景點"><i class="ph ph-tree text-xl"></i></button>
-        <button @click="currentTab='交通'" :class="currentTab==='交通' ? 'text-sky-600' : 'text-gray-500'" title="交通"><i class="ph ph-car text-xl"></i></button>
+      <div class="iphone-dock flex gap-6 items-center">
+        <button @click="currentTab='行前'" :class="currentTab==='行前' ? 'text-sky-600' : 'text-gray-500'" title="行前"><i class="ph ph-list-checks"></i></button>
+        <button @click="currentTab='行程'" :class="currentTab==='行程' ? 'text-sky-600' : 'text-gray-500'" title="行程"><i class="ph ph-map-pin"></i></button>
+        <button @click="currentTab='美食'" :class="currentTab==='美食' ? 'text-sky-600' : 'text-gray-500'" title="美食"><i class="ph ph-knife"></i></button>
+        <button @click="currentTab='購物'" :class="currentTab==='購物' ? 'text-sky-600' : 'text-gray-500'" title="購物"><i class="ph ph-shopping-bag"></i></button>
+        <button @click="currentTab='景點'" :class="currentTab==='景點' ? 'text-sky-600' : 'text-gray-500'" title="景點"><i class="ph ph-tree"></i></button>
+        <button @click="currentTab='交通'" :class="currentTab==='交通' ? 'text-sky-600' : 'text-gray-500'" title="交通"><i class="ph ph-car"></i></button>
       </div>
     </nav>
     </div>
@@ -584,7 +591,6 @@
           preTripNotes, newPreNote, addPreNote, removePreNote, 
           openAddModal,
           
-          // 修正後的航班邏輯
           activeFlight, 
           shouldShowFlightCard, 
           
