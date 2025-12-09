@@ -46,7 +46,7 @@
         backdrop-filter: blur(10px);
         border-radius: 28px;
         box-shadow: 0 8px 40px rgba(0,0,0,0.12);
-        /* 移除原有的 padding/gap，改由 HTML class 控制 */
+        /* 移除原有的 padding/gap, 改由 HTML class 控制 */
         padding: 0.5rem 0.5rem;
         border: 1px solid rgba(255,255,255,0.35);
     }
@@ -171,7 +171,11 @@
               <div class="mt-4 flex justify-between items-center">
              
                     <div class="text-sm">{{ activeFlight.code }} — {{ activeFlight.title }}</div>
-                <div class="bg-white text-sky-600 px-3 py-1 rounded-full text-xs font-bold">已確認</div>
+                <div class="flex gap-2">
+                    <button @click="openFlightModal(activeFlight.id)" class="text-white text-xs font-bold"><i class="ph ph-pencil"></i></button>
+                    <button @click="removeFlight(activeFlight.id)" class="text-white text-xs font-bold"><i class="ph ph-trash"></i></button>
+                    <div class="bg-white text-sky-600 px-3 py-1 rounded-full text-xs font-bold">已確認</div>
+                </div>
               </div>
             </div>
         </transition>
@@ -429,6 +433,48 @@
         </button>
       </div>
     </nav>
+    
+    <transition name="fade">
+        <div v-if="flightModalOpen" id="flight-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeFlightModal">
+            <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
+                <h3 class="text-xl font-bold mb-4">{{ newFlight.id ? '編輯航班' : '新增航班' }}</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex gap-3">
+                        <select v-model="newFlight.type" class="flex-1 p-2 rounded-lg border bg-white">
+                            <option value="outbound">去程 (HKG -> TPE)</option>
+                            <option value="return">回程 (TPE -> HKG)</option>
+                        </select>
+                        <input v-model="newFlight.date" type="date" class="flex-1 p-2 rounded-lg border bg-white">
+                    </div>
+                    
+                    <input v-model="newFlight.code" class="w-full p-2 rounded-lg border bg-white" placeholder="航班代碼 (例: CX400)">
+                    <input v-model="newFlight.title" class="w-full p-2 rounded-lg border bg-white" placeholder="航班名稱/備註 (例: 國泰航空)">
+                    
+                    <div class="flex gap-3">
+                        <input v-model="newFlight.fromCode" class="flex-1 p-2 rounded-lg border bg-white" placeholder="出發城市代碼 (例: HKG)">
+                        <input v-model="newFlight.toCode" class="flex-1 p-2 rounded-lg border bg-white" placeholder="抵達城市代碼 (例: TPE)">
+                    </div>
+
+                    <div class="flex gap-3">
+                        <input v-model="newFlight.fromTerminal" class="flex-1 p-2 rounded-lg border bg-white" placeholder="出發航廈 (例: T1)">
+                        <input v-model="newFlight.toTerminal" class="flex-1 p-2 rounded-lg border bg-white" placeholder="抵達航廈 (例: T1)">
+                    </div>
+
+                    <div class="flex gap-3">
+                        <input v-model="newFlight.depTime" type="time" class="flex-1 p-2 rounded-lg border bg-white" placeholder="起飛時間 (例: 13:00)">
+                        <input v-model="newFlight.arrTime" type="time" class="flex-1 p-2 rounded-lg border bg-white" placeholder="抵達時間 (例: 14:50)">
+                    </div>
+                    
+                    <textarea v-model="newFlight.note" class="w-full p-2 rounded-lg border bg-white" rows="2" placeholder="詳細備註..."></textarea>
+                </div>
+
+                <div class="mt-5 flex justify-end gap-3">
+                    <button @click="closeFlightModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
+                    <button @click="saveFlight" class="px-4 py-2 bg-sky-600 text-white rounded-lg" :disabled="!newFlight.code || !newFlight.depTime">儲存航班</button>
+                </div>
+            </div>
+        </div>
+    </transition>
 
   </div>
 
@@ -482,21 +528,128 @@
             { title:'前往機場（CX443）', note:'搭乘 CX443 回 HKG', time:'15:50' }
           ]
         ]);
-        // flights
-        const flights = [
-          { id: 'outbound', date:'2025-12-15', code:'CX400', depTime:'13:00', fromCode:'HKG', fromTerminal:'T1', toCode:'TPE', toTerminal:'T1', arrTime:'14:50', title:'由香港飛往台北', note:'航班前往台北' },
-          { id: 'return', date:'2025-12-18', code:'CX443', depTime:'15:50', fromCode:'TPE', fromTerminal:'T1', toCode:'HKG', toTerminal:'T1', arrTime:'18:00', title:'由台北返回香港', note:'回程' }
-        ];
+        
+        // flights data:
+        // 使用 ref 讓 flights 響應式，且可直接替換整個陣列
+        const flights = ref([
+          { id: 'outbound', date:'2025-12-15', code:'CX400', depTime:'13:00', fromCode:'HKG', fromTerminal:'T1', toCode:'TPE', toTerminal:'T1', arrTime:'14:50', title:'由香港飛往台北', note:'航班前往台北', type: 'outbound' },
+          { id: 'return', date:'2025-12-18', code:'CX443', depTime:'15:50', fromCode:'TPE', fromTerminal:'T1', toCode:'HKG', toTerminal:'T1', arrTime:'18:00', title:'由台北返回香港', note:'回程', type: 'return' }
+        ]);
+
         const activeFlight = computed(() => {
           const dayType = days[selectedDay.value].type;
-          if (dayType === 'flight-out') return flights[0];
-          if (dayType === 'flight-return') return flights[1];
+          if (dayType === 'flight-out') return flights.value.find(f => f.type === 'outbound');
+          if (dayType === 'flight-return') return flights.value.find(f => f.type === 'return');
           return null;
         });
+
         const shouldShowFlightCard = computed(() => {
           const dayType = days[selectedDay.value].type;
           return (currentTab.value === '行前' || currentTab.value === '行程') && (dayType === 'flight-out' || dayType === 'flight-return');
         });
+
+        // 航班 Modal 狀態與資料
+        const flightModalOpen = ref(false);
+        const newFlight = reactive({ 
+            id: null, // 'outbound' or 'return'
+            type: 'outbound', 
+            date: '2025-12-15', 
+            code: '', 
+            depTime: '', 
+            arrTime: '', 
+            fromCode: '', 
+            fromTerminal: '', 
+            toCode: '', 
+            toTerminal: '', 
+            title: '', 
+            note: '' 
+        });
+
+        function resetFlightModal(){
+            Object.assign(newFlight, {
+                id: null,
+                type: 'outbound', 
+                date: days[selectedDay.value]?.date ? `2025-${days[selectedDay.value].date.replace('/', '-')}` : '2025-12-15', 
+                code: '', 
+                depTime: '', 
+                arrTime: '', 
+                fromCode: '', 
+                fromTerminal: '', 
+                toCode: '', 
+                toTerminal: '', 
+                title: '', 
+                note: '' 
+            });
+            // 根據當前選擇的日期預設 type
+            const dayType = days[selectedDay.value]?.type;
+            if (dayType === 'flight-out') newFlight.type = 'outbound';
+            else if (dayType === 'flight-return') newFlight.type = 'return';
+        }
+
+        function openFlightModal(flightId = null){
+            resetFlightModal();
+            if(flightId){
+                const flightToEdit = flights.value.find(f => f.id === flightId);
+                if(flightToEdit){
+                    // 複製現有航班資料到 newFlight
+                    Object.assign(newFlight, flightToEdit);
+                    newFlight.date = flightToEdit.date; // 確保日期格式正確
+                    newFlight.id = flightId; // 設置 ID 表示編輯模式
+                }
+            }
+            flightModalOpen.value = true;
+        }
+
+        function closeFlightModal(){
+            flightModalOpen.value = false;
+        }
+
+        function saveFlight(){
+            if (!newFlight.code || !newFlight.depTime || !newFlight.type) return;
+
+            // 確保 date 格式為 YYYY-MM-DD
+            const dateStr = new Date(newFlight.date).toISOString().split('T')[0];
+            const flightToSave = {
+                ...JSON.parse(JSON.stringify(newFlight)),
+                id: newFlight.type, // ID 永遠跟 type 相同 ('outbound' or 'return')
+                date: dateStr,
+            };
+
+            const index = flights.value.findIndex(f => f.id === newFlight.type);
+            
+            if (index !== -1) {
+                // 編輯現有的去程或回程航班
+                flights.value.splice(index, 1, flightToSave);
+            } else {
+                // 新增航班 (雖然通常只會有去程和回程兩個)
+                flights.value.push(flightToSave);
+            }
+            
+            // 也要更新 days 陣列的 type 確保卡片顯示
+            const dayIndex = days.findIndex(d => d.date === new Date(dateStr).getDate().toString());
+            if (dayIndex !== -1) {
+                days[dayIndex].type = newFlight.type;
+            }
+
+            closeFlightModal();
+            saveAll(); // 立即儲存
+        }
+
+        function removeFlight(flightId){
+            if(confirm('確定要刪除此航班資料嗎？')){
+                const index = flights.value.findIndex(f => f.id === flightId);
+                if(index !== -1){
+                    // 找到對應的日期並將其 type 重設為 'stay'
+                    const dayIndex = days.findIndex(d => d.type === flightId);
+                    if (dayIndex !== -1) {
+                        days[dayIndex].type = 'stay';
+                    }
+                    flights.value.splice(index, 1);
+                    saveAll(); // 立即儲存
+                }
+            }
+        }
+        
         // lists
         const preTripNotes = ref([
           { name:'兌換台幣', isDone: true },
@@ -535,7 +688,9 @@
                 if (e.currency === 'TWD' && twdToHkdRate > 0) {
                     return total + amount * twdToHkdRate;
                 }
-                // 否則，假設為 HKD (或使用者以 HKD 輸入，直接加入)
+                // 否則，假設為 HKD (或使用者以 HKD 輸入, 直接加入)
+                // 這裡的邏輯是: 只要不是 TWD，就當作 HKD 加入總和
+                // 如果是 JPY/USD，則需要進一步轉換，但目前簡化為只有 TWD 轉換
                 return total + amount;
             }, 0).toFixed(2); // 保留兩位小數
         });
@@ -627,13 +782,20 @@
 
         // openAdd: smart behaviour—把輸入加入對應欄位
         function openAddModal(){
+            // 🎯 優先檢查是否為航班卡片顯示日，如果是，則打開航班 Modal
+            if (shouldShowFlightCard.value) {
+                // 如果已有航班資料，則開啟編輯模式，否則開啟新增模式
+                const flightId = activeFlight.value ? activeFlight.value.id : null;
+                openFlightModal(flightId);
+                return;
+            }
+
           if (currentTab.value === '行前'){ if (newPreNote.value) addPreNote();
           }
           else if (currentTab.value === '行程'){ if (newItemText.value) addItineraryItem();
           }
           else if (currentTab.value === '美食'){ if (newFood.value) addFood();
           }
-          // 景點 (已移除)
           else if (currentTab.value === '購物'){ if (newShoppingItem.value) addShoppingItem();
           }
           else if (currentTab.value === '記帳'){ if (newExpense.name && newExpense.amount) addExpense();
@@ -694,7 +856,7 @@
         }
 
         // localStorage persistence
-        const STORAGE_KEY = 'emenu-taipei-data-v2';
+        const STORAGE_KEY = 'emenu-taipei-data-v3'; // 變更版本號，以確保載入 flights 的新格式
         function saveAll(){
           const payload = {
             currentTab: currentTab.value,
@@ -702,11 +864,10 @@
             itinerary: JSON.parse(JSON.stringify(itinerary)),
             preTripNotes: preTripNotes.value,
             foodList: foodList.value,
-            // spots: spots.value, <-- 移除景點
-        
             shoppingList: shoppingList.value,
             expenses: expenses.value,
             infoList: infoList.value,
+            flights: flights.value, // <-- 儲存 flights
             rate: rate.value,
             weather: JSON.parse(JSON.stringify(weather))
           };
@@ -729,8 +890,9 @@
             }
             if (p.preTripNotes) preTripNotes.value = p.preTripNotes;
             if (p.foodList) foodList.value = p.foodList;
-            // if (p.spots) spots.value = p.spots; <-- 移除景點
             if (p.shoppingList) shoppingList.value = p.shoppingList;
+            if (p.flights) flights.value = p.flights; // <-- 載入 flights
+            
             // Load expenses, ensuring currency field is present for old data (default to TWD)
             if (p.expenses) {
                 expenses.value = p.expenses.map(e => ({
@@ -757,7 +919,7 @@
           setInterval(fetchRate, 10*60*1000);
           setInterval(fetchWeather, 10*60*1000);
         });
-        watch([currentTab, selectedDay, () => itinerary.map(d=>d.length), preTripNotes, foodList, shoppingList, expenses, infoList, rate, () => weather.temp], () => { // 移除 spots
+        watch([currentTab, selectedDay, () => itinerary.map(d=>d.length), preTripNotes, foodList, shoppingList, expenses, infoList, flights, rate, () => weather.temp], () => { // 加入 flights
           saveAll();
         }, { deep:true });
         // expose
@@ -767,7 +929,6 @@
           preTripNotes, newPreNote, addPreNote, removePreNote,
           itinerary, newItemText, addItineraryItem, removeItineraryItem,
           foodList, newFood, addFood, removeFood,
-          // spots, newSpot, addSpot, removeSpot, <-- 移除景點
           shoppingList, newShoppingItem, addShoppingItem, removeShoppingItem,
  
           // expenses
@@ -776,7 +937,9 @@
           infoList, newInfoTitle, addInfoWithNote, removeInfo,
           // flight/weather/rate
           activeFlight, shouldShowFlightCard, weather, weatherIconClass, rate, formattedRate, lastRateUpdateLabel,
-          openAddModal
+          openAddModal,
+          // flight modal
+          flightModalOpen, newFlight, openFlightModal, closeFlightModal, saveFlight, removeFlight,
         };
         }
     }).mount('#app');
