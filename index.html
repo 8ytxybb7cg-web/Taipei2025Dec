@@ -47,7 +47,7 @@
         border: 1px solid rgba(255,255,255,0.35);
     }
 
-    /* ⬇️ Dock 圖示大小 (0.75倍) */
+    /* ⬇️ 這是修改過的地方：將圖示大小從 2.5rem 調整成 1.875rem (0.75倍) */
     .iphone-dock button i { font-size: 1.875rem; }
 
     /* 卡片細節 */
@@ -205,7 +205,7 @@
 
       <div class="flex justify-end mb-3">
         <button @click="openAddModal" class="bg-sky-600 
-        text-white px-4 py-2 rounded-lg shadow font-medium text-sm">+ 新增</button>
+        text-white px-4 py-2 rounded-lg shadow">+ 新增</button>
       </div>
 
       <div class="rounded-2xl p-3 bg-white/85 border border-white/30 backdrop-blur shadow">
@@ -239,9 +239,6 @@
 
           <div v-if="currentTab === '行程'">
             <h3 class="text-base font-bold mb-2">今日行程 — {{ days[selectedDay].label }}</h3>
-             <div class="flex justify-end mb-3">
-                <button @click="openItineraryModal(null)" class="bg-sky-600 text-white px-3 py-1 rounded-lg text-sm font-medium">+ 新增行程</button>
-            </div>
             <ul class="space-y-2">
               <li v-for="(it, idx) in sortedItinerary" :key="it.id" 
                   @click="showLocationOnMap(it)"
@@ -695,11 +692,7 @@
             newItineraryItem.dayIndex = selectedDay.value;
             itineraryModalOpen.value = true;
         }
-        function closeItineraryModal() { 
-            itineraryModalOpen.value = false; 
-            // 🎯 修正手機縮放問題：關閉 Modal 時取消所有焦點
-            if (document.activeElement) { document.activeElement.blur(); }
-        }
+        function closeItineraryModal() { itineraryModalOpen.value = false; }
         function saveItineraryItem() {
             if (!newItineraryItem.title.trim()) return;
             const dayItems = itinerary[newItineraryItem.dayIndex];
@@ -799,19 +792,17 @@
 
         // Smart Add Button
         function openAddModal(){
-            if (shouldShowFlightCard.value && (currentTab.value === '行前' || currentTab.value === '行程')) { 
+            if (shouldShowFlightCard.value) { 
                 const flightId = activeFlight.value ? activeFlight.value.id : null; 
                 openFlightModal(flightId); 
                 return; 
             }
           if (currentTab.value === '行前'){ 
-              // If pre-trip input is filled, add it; otherwise alert
+              // If input is filled, add it; otherwise switch to Itinerary and open its modal
               if (newPreNote.value) addPreNote(); 
-              else alert('請輸入行前準備事項');
+              else { currentTab.value = '行程'; openItineraryModal(null); } 
           }
-          else if (currentTab.value === '行程'){ 
-             openItineraryModal(null); // 🎯 修正：行程標籤下直接開行程 Modal
-          }
+          else if (currentTab.value === '行程'){ openItineraryModal(null); }
           else if (currentTab.value === '購物'){ openShoppingModal(null); }
           else if (currentTab.value === '記帳'){ 
               // If expense form is filled, add it
