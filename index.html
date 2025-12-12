@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1.0,user-scalable=no" />
-  <title>eMenu Taipei v2.01 — 雲端版</title>
+  <title>eMenu Taipei v2.05 — 雲端版</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -538,18 +538,18 @@
         return /^(https?:\/\/(www\.)?instagram\.com\/(p|reel)\/)/i.test(url);
     }
 
-    // --- SUPABASE SETUP ---
-    // 您的新 Credentials (v251212-2.01)
-    const SUPABASE_URL = 'https://myrhatzdypiwwgmmfbuw.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuQVVvKi'; // 您的 Key
-    
+    // --- SUPABASE SETUP (v251212-2.05) ---
+    const SUPABASE_URL = 'https://myrhatzdypiwwgmmfbuw.supabase.co';
+    // Publishable key provided by 小姐
+    const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuYQVvKi';
+
     // 初始化 Client
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const TRIP_ID = 'shared_trip';
 
     createApp({
       setup(){
-        const appVersion = 'v251212-2.01'; 
+        const appVersion = 'v251212-2.05'; 
         const currentTab = ref('行前');
         
         // Sync Status UI
@@ -901,11 +901,15 @@
             if (!res.ok){ rate.value = null; return; }
             const data = await res.json();
             if (data && data.rates && data.rates.HKD){
-              // 修正：確保顯示的匯率是 TWD 換算成 HKD (即 1 TWD = X HKD)
-              rate.value = (1 / data.rates.TWD * data.rates.HKD).toFixed(3); 
-              lastRateUpdate.value = new Date().toISOString();
-            } else if (data && data.rates && data.rates.HKD) {
-              rate.value = (data.rates.HKD).toFixed(3);
+              // 顯示 1 TWD = X HKD
+              // open.er-api returns base currency TWD, but if not, we fallback gracefully
+              if (data.base === 'TWD') {
+                rate.value = (data.rates.HKD).toFixed(3);
+              } else if (data.rates && data.rates.HKD && data.rates.TWD) {
+                rate.value = (1 / data.rates.TWD * data.rates.HKD).toFixed(3);
+              } else {
+                rate.value = (data.rates.HKD || null);
+              }
               lastRateUpdate.value = new Date().toISOString();
             }
           } catch(e){ console.warn('rate fail', e); rate.value = null; }
