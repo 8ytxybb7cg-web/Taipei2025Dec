@@ -73,12 +73,7 @@
         
         <div>
           <h1 class="text-2xl font-bold text-gray-800">eMenu Taipei <span class="ml-1 text-sm">🇹🇼</span></h1>
-          <p class="text-xs text-gray-500 mt-1">台北 12/15 — 12/18
-          
-          <span class="ml-2 text-[10px] text-sky-600 bg-sky-100/50 px-1 py-0.5 rounded-sm font-semibold">
-            v251212-2.01
-          </span>
-          </p>
+          <p class="text-xs text-gray-500 mt-1">台北 12/15 — 12/18</p>
         </div>
         <div class="text-right">
           <div class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md border border-emerald-200 inline-block">即時匯率</div>
@@ -579,12 +574,12 @@
     }
 
     // ===========================================
-    // ✅ Supabase 雲端同步架構
+    // ✅ Supabase 雲端同步架構 (取代 LocalStorage)
     // ===========================================
     const SUPABASE_URL = 'https://qzsuafpwwstjpeenppic.supabase.co'; 
     const SUPABASE_ANON_KEY = 'sb_publishable_vlmgWB_vdbktm8RZ6QIRSA_urBcr0jN'; // 您的公開金鑰
     const TABLE_NAME = 'trip_data';
-    const DATA_ROW_ID = 1; // 我們的唯一資料行 ID
+    const DATA_ROW_ID = 1; // 我們的唯一資料行 ID (您在 Supabase 資料表上設定的 id)
 
     // 1. 初始化 Supabase 客戶端
     let supabase = null;
