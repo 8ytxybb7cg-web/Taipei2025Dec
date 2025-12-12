@@ -42,7 +42,7 @@
 
     .glass-card { 
         border-radius: var(--card-radius);
-        background: rgba(255,255,255,0.88); 
+        background: rgba(255,255,255,0.88);
         border: 1px solid rgba(255,255,255,0.35);
         padding: 0.75rem; 
         box-shadow: 0 8px 24px rgba(2,6,23,0.06);
@@ -80,9 +80,12 @@
         <div>
           <h1 class="text-2xl font-bold text-gray-800">eMenu Taipei <span class="ml-1 text-sm">🇹🇼</span></h1>
           <div class="flex items-center gap-2 mt-1">
-            <p class="text-xs text-gray-500">台北 12/15 — 12/18 <span class="opacity-50 ml-1 text-[10px]">{{ appVersion }}</span></p>
+            <div class="flex flex-col justify-center">
+                <span class="text-xs text-gray-500">台北 12/15 — 12/18</span>
+                <span class="text-[10px] text-gray-500 opacity-50 leading-tight">{{ appVersion }}</span>
+            </div>
             
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 ml-1">
                 <div class="flex items-center gap-1 bg-white/60 px-2 py-0.5 rounded-full border border-gray-200">
                     <div class="w-2 h-2 rounded-full" 
                         :class="{
@@ -91,7 +94,7 @@
                             'bg-blue-500 animate-pulse': syncState === 'loading',
                             'bg-red-500': syncState === 'error'
                         }"></div>
-                    <span class="text-[10px] font-medium sync-status" 
+                    <span class="text-[10px] font-medium sync-status whitespace-nowrap" 
                         :class="{
                             'sync-synced': syncState === 'synced', 
                             'sync-saving': syncState === 'saving', 
@@ -101,7 +104,7 @@
                         {{ syncStatusText }}
                     </span>
                 </div>
-                <button @click="foerceReloadCloud" class="bg-white/60 p-1 rounded-full border border-gray-200 text-gray-500 active:bg-gray-200" title="立即同步">
+                <button @click="forceReloadCloud" class="bg-white/60 p-1 rounded-full border border-gray-200 text-gray-500 active:bg-gray-200" title="立即同步">
                     <i class="ph ph-arrows-clockwise text-xs" :class="{'rotate-icon': syncState === 'loading'}"></i>
                 </button>
             </div>
@@ -109,8 +112,8 @@
         </div>
         <div class="text-right">
           <div class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-md border border-emerald-200 inline-block">即時匯率</div>
-          <div class="text-xs font-bold text-gray-600 mt-1">
-            1 TWD ≈ <span class="text-emerald-600 text-sm">{{ formattedRate }}</span> HKD
+          <div class="text-xs font-bold text-gray-600 mt-1 whitespace-nowrap">
+             1 TWD ≈ <span class="text-emerald-600 text-sm">{{ formattedRate }}</span> HKD
             <div class="text-[10px] text-gray-400">更新：{{ lastRateUpdateLabel }}</div>
           </div>
         </div>
@@ -260,7 +263,7 @@
           </div>
 
           <div v-if="currentTab === '行程'">
-            <h3 class="text-base font-bold mb-2">今日行程 — {{ days[selectedDay].label }}</h3>
+             <h3 class="text-base font-bold mb-2">今日行程 — {{ days[selectedDay].label }}</h3>
             <ul class="space-y-2">
               <li v-for="(it, idx) in sortedItinerary" :key="it.id" 
                   @click="showLocationOnMap(it)"
@@ -349,7 +352,7 @@
                         <option value="交通">交通</option>
                         <option value="購物">購物</option>
                         <option value="其他">其他</option>
-                    </select>
+                     </select>
                 </div>
                 <button @click="addExpense" class="w-full py-2 bg-sky-600 text-white rounded-lg">加入消費記錄</button>
             </div>
@@ -419,7 +422,6 @@
       </div>
     </nav>
     
-    <!-- Pre-note Edit Modal -->
     <transition name="fade">
       <div v-if="preNoteModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closePreNoteModal">
         <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
@@ -446,18 +448,18 @@
                 <div class="space-y-3 text-sm">
                     <div class="flex gap-3">
                         <select v-model="newFlight.type" class="flex-1 p-2 rounded-lg border bg-white text-base">
-                            <option value="outbound">去程 (HKG -> TPE)</option>
+                             <option value="outbound">去程 (HKG -> TPE)</option>
                             <option value="return">回程 (TPE -> HKG)</option>
                         </select>
                         <input v-model="newFlight.date" type="date" class="flex-1 p-2 rounded-lg border bg-white text-base">
-                    </div>
+                     </div>
                     <input v-model="newFlight.code" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="航班代碼 (例: CX400)">
                     <input v-model="newFlight.title" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="航班名稱/備註">
                     <div class="flex gap-3">
-                        <input v-model="newFlight.fromCode" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="出發 (HKG)">
+                         <input v-model="newFlight.fromCode" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="出發 (HKG)">
                         <input v-model="newFlight.toCode" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="抵達 (TPE)">
                     </div>
-                    <div class="flex gap-3">
+                     <div class="flex gap-3">
                         <input v-model="newFlight.fromTerminal" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="出發航廈">
                         <input v-model="newFlight.toTerminal" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="抵達航廈">
                     </div>
@@ -541,7 +543,7 @@
     const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
     const generateId = () => Date.now() + Math.floor(Math.random() * 1000);
     const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
-    const initializeListWithIds = (list) => list.map(item => ({ ...item, id: item.id || generateId() })); 
+    const initializeListWithIds = (list) => list.map(item => ({ ...item, id: item.id || generateId() }));
     function isInstagramLink(url) {
         if (!url) return false;
         return /^(https?:\/\/(www\.)?instagram\.com\/(p|reel)\/)/i.test(url);
@@ -758,8 +760,7 @@
         function removeShoppingItem(idToRemove) {
             if (!confirm('確定刪除此購物項目嗎？')) return;
             const index = shoppingList.value.findIndex(i => i.id === idToRemove);
-            if (index !== -1) { shoppingList.value.splice(index, 1); saveAll();
-            }
+            if (index !== -1) { shoppingList.value.splice(index, 1); saveAll(); }
         }
 
         const infoModalOpen = ref(false);
@@ -782,8 +783,7 @@
         function removeInfo(idToRemove) {
             if (!confirm('確定刪除此資訊項目嗎？')) return;
             const index = infoList.value.findIndex(i => i.id === idToRemove);
-            if (index !== -1) { infoList.value.splice(index, 1); saveAll();
-            }
+            if (index !== -1) { infoList.value.splice(index, 1); saveAll(); }
         }
 
         // PRE-TRIP notes
@@ -798,9 +798,8 @@
         // Pre-note modal & editing object
         const preNoteModalOpen = ref(false);
         const editingPreNote = reactive({ id: null, name: '', isDone: false });
-
         function addPreNote(){ 
-            if (!newPreNote.value.trim()) return; 
+            if (!newPreNote.value.trim()) return;
             preTripNotes.value.push({ id:generateId(), name:newPreNote.value.trim(), isDone:false }); 
             newPreNote.value=''; 
             saveAll(); 
@@ -844,7 +843,6 @@
         const infoList = ref(initializeListWithIds([
           { title:'西門町永安棧 (電話)', note:'+886 2 2352 3090', isDone:false },
         ]));
-
         const totalExpense = computed(() => {
             const twdToHkdRate = Number(rate.value) || 0;
             return expenses.value.reduce((total, e) => {
@@ -878,7 +876,6 @@
           if (!lastRateUpdate.value) return '—';
           return new Date(lastRateUpdate.value).toLocaleTimeString('zh-HK');
         });
-
         function selectDay(i){ selectedDay.value = i; selectedMapLocation.value = null; }
 
         function addExpense(){
@@ -910,7 +907,7 @@
                  openFlightModal(flightId);
              } else {
                  openItineraryModal(null);
-             }
+            }
           }
           else if (currentTab.value === '購物'){ openShoppingModal(null); }
           else if (currentTab.value === '記帳'){ if (newExpense.name && newExpense.amount) addExpense(); }
@@ -988,22 +985,24 @@
                     flights: flights.value
                 };
                 
+            
                 try {
                     const { error } = await supabaseClient
                         .from('trip_data')
                         .upsert({ id: TRIP_ID, content: payload });
 
+                
                     if (error) throw error;
                     syncState.value = 'synced';
                 } catch (e) {
                     console.error('Save failed', e);
                     syncState.value = 'error';
                 }
-            }, 1000); 
+            }, 1000);
         }
 
         async function fetchCloudData(isAuto = true) {
-            if (syncState.value === 'saving' && isAuto) return; 
+            if (syncState.value === 'saving' && isAuto) return;
             if(!isAuto) syncState.value = 'loading'; 
 
             try {
@@ -1014,7 +1013,6 @@
                     .single();
                 
                 if (error) throw error;
-                
                 if (data && data.content && JSON.stringify(data.content) !== JSON.stringify(getAppPayload())) {
                     applyCloudData(data.content);
                     syncState.value = 'synced';
@@ -1055,7 +1053,6 @@
                 expenses.value = data.expenses.map(e => ({...e, id: e.id || generateId(), currency: e.currency || 'TWD' }));
             }
             if (data.infoList) infoList.value = initializeListWithIds(data.infoList);
-            
             setTimeout(() => { isRemoteUpdate = false; }, 300);
         }
 
@@ -1068,9 +1065,7 @@
           setInterval(fetchWeather, 10*60*1000);
           setInterval(() => { fetchCloudData(true); }, 15000);
         });
-
         watch([itinerary, preTripNotes, shoppingList, expenses, infoList, flights], () => { saveAll(); }, { deep:true });
-
         return {
           appVersion, syncState, syncStatusText, forceReloadCloud,
           currentTab, days, selectedDay, selectDay, isFlightDay,
