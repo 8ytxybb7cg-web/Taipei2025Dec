@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1.0,user-scalable=no" />
-  <title>eMenu Taipei v2.05 — 雲端版</title>
+  <title>eMenu Taipei v2.06 — 雲端版</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -23,19 +23,13 @@
       background-color:#0f172a;
       margin:0;
     }
-    /* hide scrollbar */
     .no-scrollbar::-webkit-scrollbar { display:none; }
     .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
-    
-    /* Animation */
     .fade-enter-active, .fade-leave-active { transition: opacity .25s ease; }
     .fade-enter-from, .fade-leave-to { opacity: 0; }
-    
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 12px); }
-    
     .task-done { text-decoration: line-through; color: #9ca3af; }
 
-    /* Dock Style */
     .iphone-dock {
         background: rgba(255,255,255,0.68);
         backdrop-filter: blur(10px);
@@ -46,7 +40,6 @@
     }
     .iphone-dock button i { font-size: 1.875rem; }
 
-    /* Card Style */
     .glass-card { 
         border-radius: var(--card-radius);
         background: rgba(255,255,255,0.88); 
@@ -55,25 +48,19 @@
         box-shadow: 0 8px 24px rgba(2,6,23,0.06);
     }
 
-    /* FIX: Prevent iOS Zoom on focus */
     @media screen and (max-width: 768px) {
         input, select, textarea {
             font-size: 16px !important;
         }
     }
-    
-    /* Sync Status Indicator */
-    .sync-status {
-      transition: all 0.3s ease;
-    }
-    .sync-saving { color: #f59e0b; } /* Amber */
-    .sync-synced { color: #10b981; } /* Emerald */
-    .sync-error { color: #ef4444; } /* Red */
-    .sync-loading { color: #3b82f6; } /* Blue */
 
-    .rotate-icon {
-        animation: spin 1s linear infinite;
-    }
+    .sync-status { transition: all 0.3s ease; }
+    .sync-saving { color: #f59e0b; }
+    .sync-synced { color: #10b981; }
+    .sync-error { color: #ef4444; }
+    .sync-loading { color: #3b82f6; }
+
+    .rotate-icon { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -250,11 +237,14 @@
                 <div class="flex items-center gap-2">
                   <i class="ph text-xl cursor-pointer" 
                      :class="note.isDone ? 'ph-check-circle-fill text-emerald-500' : 'ph-circle text-gray-400'" 
-                     @click="note.isDone = !note.isDone">
+                     @click="togglePreNoteDone(note.id)">
                   </i>
                   <span class="font-medium" :class="{'task-done': note.isDone, 'text-gray-900': !note.isDone}">{{ note.name }}</span>
                 </div>
-                <button class="text-red-500 text-base" @click="removePreNote(note.id)"><i class="ph ph-trash"></i></button>
+                <div class="flex items-center gap-2">
+                  <button @click.stop="editPreNote(note)" class="text-gray-400 text-base hover:text-sky-600 transition p-1" title="編輯"><i class="ph ph-pencil-simple"></i></button>
+                  <button @click.stop="removePreNote(note.id)" class="text-red-500 text-base" title="刪除"><i class="ph ph-trash"></i></button>
+                </div>
               </li>
               <li v-if="preTripNotes.length === 0" class="p-3 text-sm text-gray-500 text-center border-dashed border-2 rounded-lg">
                 請新增行前準備事項！
@@ -429,6 +419,26 @@
       </div>
     </nav>
     
+    <!-- Pre-note Edit Modal -->
+    <transition name="fade">
+      <div v-if="preNoteModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closePreNoteModal">
+        <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
+          <h3 class="text-xl font-bold mb-4">{{ editingPreNote.id ? '編輯準備事項' : '新增準備事項' }}</h3>
+          <div class="space-y-3 text-sm">
+            <input v-model="editingPreNote.name" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="事項名稱">
+            <div class="flex items-center gap-3 mt-3">
+              <input type="checkbox" id="pre-note-done" v-model="editingPreNote.isDone" class="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded">
+              <label for="pre-note-done" class="text-gray-900">已完成</label>
+            </div>
+          </div>
+          <div class="mt-5 flex justify-end gap-3">
+            <button @click="closePreNoteModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
+            <button @click="savePreNoteEdit" class="px-4 py-2 bg-sky-600 text-white rounded-lg">儲存</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <transition name="fade">
         <div v-if="flightModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeFlightModal">
             <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
@@ -531,29 +541,23 @@
     const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
     const generateId = () => Date.now() + Math.floor(Math.random() * 1000);
     const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
-    // 修正：確保只有在物件沒有 id 時才生成
     const initializeListWithIds = (list) => list.map(item => ({ ...item, id: item.id || generateId() })); 
     function isInstagramLink(url) {
         if (!url) return false;
         return /^(https?:\/\/(www\.)?instagram\.com\/(p|reel)\/)/i.test(url);
     }
 
-    // --- SUPABASE SETUP (v251212-2.05) ---
+    // --- SUPABASE SETUP ---
     const SUPABASE_URL = 'https://myrhatzdypiwwgmmfbuw.supabase.co';
-    // Publishable key provided by 小姐
     const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuYQVvKi';
-
-    // 初始化 Client
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const TRIP_ID = 'shared_trip';
 
     createApp({
       setup(){
-        const appVersion = 'v251212-2.05'; 
+        const appVersion = 'v251212-2.06'; 
         const currentTab = ref('行前');
-        
-        // Sync Status UI
-        const syncState = ref('synced'); // 'synced' | 'saving' | 'error' | 'loading'
+        const syncState = ref('synced');
         const syncStatusText = computed(() => {
             if(syncState.value === 'synced') return '已同步';
             if(syncState.value === 'saving') return '儲存中...';
@@ -568,7 +572,6 @@
           { week:'Thu', date:'18', label:'12/18 (四)', type: 'flight-return' }
         ]);
         const selectedDay = ref(0);
-
         const isFlightDay = computed(() => {
             const t = days[selectedDay.value].type;
             return t === 'flight-out' || t === 'flight-return';
@@ -576,7 +579,7 @@
 
         const quickItinerary = reactive({ time: '', title: '' });
 
-        // Initial Data Structure (保留初始值，確保第一次載入時有內容)
+        // Initial Itinerary
         const initialItinerary = [
           [
             { title:'抵達台北・入住酒店、休息', note:'西門町永安棧', time:'', address:'台北市萬華區中華路一段52號' },
@@ -615,7 +618,7 @@
             });
         });
 
-        // Map Module Logic
+        // Map logic
         const selectedMapLocation = ref(null);
         function showLocationOnMap(item) {
             if (item.address && item.address.trim() !== '') {
@@ -624,7 +627,6 @@
                 selectedMapLocation.value = null;
             }
         }
-        // 修正地圖連結生成邏輯
         function generateMapLink(address, type) {
             if (!address) return '#';
             const encodedAddress = encodeURIComponent(address);
@@ -633,7 +635,7 @@
             return '#';
         }
 
-        // Active Flight (computed)
+        // Flights
         const flights = ref([
           { id: 'outbound', date:'2025-12-15', code:'CX400', depTime:'13:00', fromCode:'HKG', fromTerminal:'T1', toCode:'TPE', toTerminal:'T1', arrTime:'14:50', title:'由香港飛往台北', note:'航班前往台北', type: 'outbound' },
           { id: 'return', date:'2025-12-18', code:'CX443', depTime:'15:50', fromCode:'TPE', fromTerminal:'T1', toCode:'HKG', toTerminal:'T1', arrTime:'18:00', title:'由台北返回香港', note:'回程', type: 'return' }
@@ -649,19 +651,17 @@
           return (currentTab.value === '行前' || currentTab.value === '行程') && (dayType === 'flight-out' || dayType === 'flight-return');
         });
 
-        // Modals Logic (保持不變)
+        // Modals for itinerary / flights / shopping / info (same as before)
         const itineraryModalOpen = ref(false);
         const newItineraryItem = reactive({ id: null, title: '', note: '', time: '', address: '', dayIndex: null });
-        function resetItineraryModal() { Object.assign(newItineraryItem, { id: null, title: '', note: '', time: '', address: '', dayIndex: selectedDay.value });
-        }
+        function resetItineraryModal() { Object.assign(newItineraryItem, { id: null, title: '', note: '', time: '', address: '', dayIndex: selectedDay.value }); }
         function openItineraryModal(item = null) {
             resetItineraryModal();
             if (item) Object.assign(newItineraryItem, deepClone(item));
             newItineraryItem.dayIndex = selectedDay.value;
             itineraryModalOpen.value = true;
         }
-        function closeItineraryModal() { itineraryModalOpen.value = false;
-        }
+        function closeItineraryModal() { itineraryModalOpen.value = false; }
         function saveItineraryItem() {
             if (!newItineraryItem.title.trim()) return;
             const dayItems = itinerary[newItineraryItem.dayIndex];
@@ -723,8 +723,7 @@
             }
             flightModalOpen.value = true;
         }
-        function closeFlightModal(){ flightModalOpen.value = false;
-        }
+        function closeFlightModal(){ flightModalOpen.value = false; }
         function saveFlight(){
             if (!newFlight.code || !newFlight.depTime || !newFlight.type) return;
             const dateStr = new Date(newFlight.date).toISOString().split('T')[0];
@@ -746,8 +745,7 @@
             if (item) Object.assign(newShoppingItem, deepClone(item));
             shoppingModalOpen.value = true;
         }
-        function closeShoppingModal() { shoppingModalOpen.value = false;
-        }
+        function closeShoppingModal() { shoppingModalOpen.value = false; }
         function saveShoppingItem() {
             if (!newShoppingItem.name.trim()) return;
             const itemToSave = { ...deepClone(newShoppingItem), id: newShoppingItem.id || generateId() };
@@ -771,8 +769,7 @@
             if (item) Object.assign(newInfoItem, deepClone(item));
             infoModalOpen.value = true;
         }
-        function closeInfoModal() { infoModalOpen.value = false;
-        }
+        function closeInfoModal() { infoModalOpen.value = false; }
         function saveInfoItem() {
             if (!newInfoItem.title.trim()) return;
             const itemToSave = { ...deepClone(newInfoItem), id: newInfoItem.id || generateId() };
@@ -789,7 +786,7 @@
             }
         }
 
-        // Lists
+        // PRE-TRIP notes
         const preTripNotes = ref(initializeListWithIds([
           { name:'兌換台幣', isDone: true },
           { name:'確認住宿預約單', isDone: false },
@@ -797,6 +794,43 @@
           { name:'護照影本備份', isDone: true }
         ]));
         const newPreNote = ref('');
+
+        // Pre-note modal & editing object
+        const preNoteModalOpen = ref(false);
+        const editingPreNote = reactive({ id: null, name: '', isDone: false });
+
+        function addPreNote(){ 
+            if (!newPreNote.value.trim()) return; 
+            preTripNotes.value.push({ id:generateId(), name:newPreNote.value.trim(), isDone:false }); 
+            newPreNote.value=''; 
+            saveAll(); 
+        }
+        function removePreNote(idToRemove){ 
+            if (!confirm('確定刪除此項目？')) return;
+            const index = preTripNotes.value.findIndex(n => n.id === idToRemove);
+            if (index !== -1) { preTripNotes.value.splice(index,1); saveAll(); }
+        }
+        function togglePreNoteDone(id){
+            const p = preTripNotes.value.find(x => x.id === id);
+            if(p){ p.isDone = !p.isDone; saveAll(); }
+        }
+
+        function editPreNote(note){
+            Object.assign(editingPreNote, { id: note.id, name: note.name, isDone: !!note.isDone });
+            preNoteModalOpen.value = true;
+        }
+        function closePreNoteModal(){ preNoteModalOpen.value = false; Object.assign(editingPreNote, { id:null, name:'', isDone:false }); }
+        function savePreNoteEdit(){
+            if (!editingPreNote.name.trim()) return;
+            const idx = preTripNotes.value.findIndex(n => n.id === editingPreNote.id);
+            const payload = { id: editingPreNote.id || generateId(), name: editingPreNote.name.trim(), isDone: !!editingPreNote.isDone };
+            if (idx !== -1) preTripNotes.value.splice(idx,1,payload);
+            else preTripNotes.value.push(payload);
+            closePreNoteModal();
+            saveAll();
+        }
+
+        // Shopping, expenses, info lists
         const shoppingList = ref(initializeListWithIds([
           { name:'鳳梨酥 (佳德)', isDone: false, imageURL: '' },
           { name:'面膜 (藥妝店)', isDone: false, imageURL: '' },
@@ -821,8 +855,6 @@
                 } else if (e.currency === 'HKD') {
                     convertedAmount = amount;
                 } else {
-                    // 對於其他幣種 (JPY, USD)，由於缺乏即時匯率，暫時忽略或使用 1:1 預估
-                    // 為了穩定性，我們只計算 TWD 和 HKD
                     return total;
                 }
                 return total + convertedAmount;
@@ -848,16 +880,7 @@
         });
 
         function selectDay(i){ selectedDay.value = i; selectedMapLocation.value = null; }
-        function addPreNote(){ 
-            if (!newPreNote.value.trim()) return; 
-            preTripNotes.value.push({ id:generateId(), name:newPreNote.value.trim(), isDone:false }); 
-            newPreNote.value=''; 
-            saveAll(); 
-        }
-        function removePreNote(idToRemove){ 
-            const index = preTripNotes.value.findIndex(n => n.id === idToRemove);
-            if (index !== -1) { preTripNotes.value.splice(index,1); saveAll(); }
-        }
+
         function addExpense(){
           if (!newExpense.name.trim() || !newExpense.amount) return;
           const d = new Date();
@@ -901,8 +924,6 @@
             if (!res.ok){ rate.value = null; return; }
             const data = await res.json();
             if (data && data.rates && data.rates.HKD){
-              // 顯示 1 TWD = X HKD
-              // open.er-api returns base currency TWD, but if not, we fallback gracefully
               if (data.base === 'TWD') {
                 rate.value = (data.rates.HKD).toFixed(3);
               } else if (data.rates && data.rates.HKD && data.rates.TWD) {
@@ -948,15 +969,12 @@
           return '晴朗';
         }
 
-        // --- CLOUD SYNC LOGIC (NO REALTIME) ---
-        
+        // CLOUD SYNC
         let debounceTimer = null;
         let isRemoteUpdate = false; 
 
-        // 1. Save Data (Debounced Upsert)
         function saveAll(){
             if(isRemoteUpdate) return;
-            
             syncState.value = 'saving';
             if (debounceTimer) clearTimeout(debounceTimer);
 
@@ -984,11 +1002,8 @@
             }, 1000); 
         }
 
-        // 2. Fetch Data (Pull)
         async function fetchCloudData(isAuto = true) {
-            // 如果正在儲存，先不下載以免衝突
             if (syncState.value === 'saving' && isAuto) return; 
-            
             if(!isAuto) syncState.value = 'loading'; 
 
             try {
@@ -1004,7 +1019,7 @@
                     applyCloudData(data.content);
                     syncState.value = 'synced';
                 } else {
-                    syncState.value = 'synced'; // 數據一致，維持已同步狀態
+                    syncState.value = 'synced';
                 }
             } catch (e) {
                 console.error('Fetch fail', e);
@@ -1012,7 +1027,6 @@
             }
         }
         
-        // 獲取當前 App 狀態 Payload
         function getAppPayload() {
             return {
                 itinerary: JSON.parse(JSON.stringify(itinerary)),
@@ -1028,14 +1042,12 @@
             if (!data) return;
             isRemoteUpdate = true; 
             
-            // Itinerary
             if (data.itinerary && Array.isArray(data.itinerary)){
               for (let i=0;i<4;i++){
                 const loadedItems = (data.itinerary[i] || []).map(item => ({...item, id: item.id || generateId(), address: item.address || '' }));
                 itinerary[i].splice(0, itinerary[i].length, ...loadedItems);
               }
             }
-            // Others
             if (data.preTripNotes) preTripNotes.value = initializeListWithIds(data.preTripNotes);
             if (data.shoppingList) shoppingList.value = initializeListWithIds(data.shoppingList.map(item => ({...item, imageURL: item.imageURL || '' })));
             if (data.flights) flights.value = data.flights;
@@ -1047,34 +1059,23 @@
             setTimeout(() => { isRemoteUpdate = false; }, 300);
         }
 
-        // 手動刷新按鈕
-        function forceReloadCloud() {
-            fetchCloudData(false);
-        }
+        function forceReloadCloud() { fetchCloudData(false); }
 
         onMounted(()=>{
-          // 初始化下載
           fetchCloudData(false);
-
           fetchRate(); fetchWeather();
           setInterval(fetchRate, 10*60*1000);
           setInterval(fetchWeather, 10*60*1000);
-
-          // 3. Polling (每 15 秒檢查一次)
-          setInterval(() => {
-              fetchCloudData(true);
-          }, 15000);
+          setInterval(() => { fetchCloudData(true); }, 15000);
         });
 
-        // Watch for changes to trigger Save
-        watch([itinerary, preTripNotes, shoppingList, expenses, infoList, flights], () => { 
-          saveAll();
-        }, { deep:true });
+        watch([itinerary, preTripNotes, shoppingList, expenses, infoList, flights], () => { saveAll(); }, { deep:true });
 
         return {
           appVersion, syncState, syncStatusText, forceReloadCloud,
           currentTab, days, selectedDay, selectDay, isFlightDay,
-          preTripNotes, newPreNote, addPreNote, removePreNote,
+          preTripNotes, newPreNote, addPreNote, removePreNote, editPreNote, togglePreNoteDone,
+          preNoteModalOpen, editingPreNote, closePreNoteModal, savePreNoteEdit,
           itinerary, sortedItinerary, itineraryModalOpen, newItineraryItem, openItineraryModal, closeItineraryModal, saveItineraryItem, removeItineraryItem,
           quickItinerary, addQuickItinerary,
           selectedMapLocation, showLocationOnMap, generateMapLink,
@@ -1082,7 +1083,7 @@
           expenses, newExpense, addExpense, removeExpense, toggleExpenseDone, totalExpense,
           infoList, infoModalOpen, newInfoItem, openInfoModal, closeInfoModal, saveInfoItem, removeInfo,
           activeFlight, shouldShowFlightCard, weather, weatherIconClass, rate, formattedRate, lastRateUpdateLabel,
-          openAddModal, flightModalOpen, newFlight, openFlightModal, closeFlightModal, saveFlight, // removeFlight
+          openAddModal, flightModalOpen, newFlight, openFlightModal, closeFlightModal, saveFlight,
         };
       }
     }).mount('#app');
