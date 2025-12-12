@@ -373,6 +373,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                   <div class="font-bold">{{ e.currency }} {{ e.amount }}</div>
+                  <button @click="openExpenseModal(e)" class="text-gray-500 text-base hover:text-sky-600 transition"><i class="ph ph-pencil-simple"></i></button>
                   <button @click="removeExpense(e.id)" class="text-red-500"><i class="ph ph-trash"></i></button>
                 </div>
               </li>
@@ -532,6 +533,36 @@
                 <div class="mt-5 flex justify-end gap-3">
                     <button @click="closeInfoModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
                     <button @click="saveInfoItem" class="px-4 py-2 bg-sky-600 text-white rounded-lg">儲存</button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <transition name="fade">
+        <div v-if="expenseModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeExpenseModal">
+            <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
+                <h3 class="text-xl font-bold mb-4">編輯消費記錄</h3>
+                <div class="space-y-3 text-sm">
+                    <input v-model="editingExpenseItem.name" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="消費名稱">
+                    <div class="flex gap-2">
+                         <select v-model="editingExpenseItem.currency" class="w-24 p-2 rounded-lg border bg-white text-base">
+                            <option value="TWD">TWD</option>
+                            <option value="HKD">HKD</option>
+                            <option value="JPY">JPY</option>
+                            <option value="USD">USD</option>
+                        </select>
+                        <input v-model.number="editingExpenseItem.amount" type="number" class="flex-1 p-2 rounded-lg border bg-white text-base" placeholder="金額">
+                    </div>
+                    <select v-model="editingExpenseItem.category" class="w-full p-2 rounded-lg border bg-white text-base">
+                        <option value="食物">食物</option>
+                        <option value="交通">交通</option>
+                        <option value="購物">購物</option>
+                        <option value="其他">其他</option>
+                     </select>
+                </div>
+                <div class="mt-5 flex justify-end gap-3">
+                    <button @click="closeExpenseModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
+                    <button @click="saveExpenseEdit" class="px-4 py-2 bg-sky-600 text-white rounded-lg">儲存</button>
                 </div>
             </div>
         </div>
@@ -1058,6 +1089,29 @@
 
         function forceReloadCloud() { fetchCloudData(false); }
 
+        // Expense Edit Logic
+        const expenseModalOpen = ref(false);
+        const editingExpenseItem = reactive({ id: null, name: '', amount: 0, category: '', currency: 'TWD', date: '', isDone: false });
+
+        function openExpenseModal(item) {
+            Object.assign(editingExpenseItem, deepClone(item));
+            expenseModalOpen.value = true;
+        }
+
+        function closeExpenseModal() {
+            expenseModalOpen.value = false;
+        }
+
+        function saveExpenseEdit() {
+            if (!editingExpenseItem.name.trim() || !editingExpenseItem.amount) return;
+            const index = expenses.value.findIndex(e => e.id === editingExpenseItem.id);
+            if (index !== -1) {
+                expenses.value.splice(index, 1, deepClone(editingExpenseItem));
+                saveAll();
+            }
+            closeExpenseModal();
+        }
+
         onMounted(()=>{
           fetchCloudData(false);
           fetchRate(); fetchWeather();
@@ -1079,6 +1133,7 @@
           infoList, infoModalOpen, newInfoItem, openInfoModal, closeInfoModal, saveInfoItem, removeInfo,
           activeFlight, shouldShowFlightCard, weather, weatherIconClass, rate, formattedRate, lastRateUpdateLabel,
           openAddModal, flightModalOpen, newFlight, openFlightModal, closeFlightModal, saveFlight,
+          expenseModalOpen, editingExpenseItem, openExpenseModal, closeExpenseModal, saveExpenseEdit
         };
       }
     }).mount('#app');
