@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1.0,user-scalable=no" />
-  <title>eMenu Taipei v2.10 — 雲端版</title>
+  <title>eMenu Taipei v2.11 — 雲端版</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -46,7 +46,7 @@
         box-shadow: 0 8px 24px rgba(2,6,23,0.06);
     }
     .expense-card {
-        /* New Custom Background: #081C54 (70%) */
+        /* Custom Background: #081C54 (70%) */
         background: linear-gradient(135deg, rgba(8, 28, 84, 0.7) 0%, rgba(8, 28, 84, 0.75) 100%);
         backdrop-filter: blur(8px);
         color: white;
@@ -330,7 +330,7 @@
           <div v-if="currentTab === '記帳'">
             
             <div class="expense-card mb-4 relative">
-                <button @click="openExpenseModal" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full backdrop-blur-sm transition">
+                <button @click="openExpenseModal()" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full backdrop-blur-sm transition">
                     <i class="ph ph-plus text-xl font-bold"></i>
                 </button>
 
@@ -379,7 +379,8 @@
                     <div class="text-right">
                         <div class="font-bold text-gray-800">{{ e.currency }} {{ e.amount }}</div>
                     </div>
-                    <button @click="removeExpense(e.id)" class="text-red-400 hover:text-red-600"><i class="ph ph-trash"></i></button>
+                    <button @click.stop="openExpenseModal(e)" class="text-gray-400 hover:text-sky-600"><i class="ph ph-pencil-simple"></i></button>
+                    <button @click.stop="removeExpense(e.id)" class="text-red-400 hover:text-red-600"><i class="ph ph-trash"></i></button>
                     </div>
                 </li>
                 <li v-if="filteredExpenses.length === 0" class="p-4 text-sm text-gray-500 text-center border-dashed border-2 rounded-lg">
@@ -574,10 +575,12 @@
     <transition name="fade">
         <div v-if="expenseModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeExpenseModal">
             <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
-                <h3 class="text-xl font-bold mb-4">新增消費記錄</h3>
+                <h3 class="text-xl font-bold mb-4">{{ newExpense.id ? '編輯消費記錄' : '新增消費記錄' }}</h3>
                 <div class="space-y-4 text-sm">
                     <input v-model="newExpense.name" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="消費名稱 (例如：雅香火鍋)">
                     
+                    <input v-model="newExpense.date" type="date" class="w-full p-2 rounded-lg border bg-white/70 text-base" placeholder="日期">
+
                     <div class="flex gap-2">
                         <select v-model="newExpense.currency" class="w-24 p-2 rounded-lg border bg-white/70 text-base">
                             <option value="TWD">TWD</option>
@@ -603,7 +606,7 @@
                 </div>
                 <div class="mt-5 flex justify-end gap-3">
                     <button @click="closeExpenseModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
-                    <button @click="addExpense" class="px-4 py-2 bg-blue-600 text-white rounded-lg">加入</button>
+                    <button @click="saveExpense" class="px-4 py-2 bg-blue-600 text-white rounded-lg">儲存</button>
                 </div>
             </div>
         </div>
@@ -663,10 +666,18 @@
       if (!url) return false;
       return /^(https?:\/\/(www\.)?instagram\.com\/(p|reel)\/)/i.test(url);
     }
+    
+    function getTodayDateString(separator = '-') {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}${separator}${month}${separator}${day}`;
+    }
 
     // --- SUPABASE SETUP ---
     const SUPABASE_URL = 'https://myrhatzdypiwwgmmfbuw.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuYQVvKi';
+    const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuYQVfKi';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // --- UTILITIES ---
@@ -685,7 +696,7 @@
 
     createApp({
       setup() {
-        const appVersion = ref('v251213-2.10'); // **UPDATED VERSION**
+        const appVersion = ref('v251213-2.11'); // **UPDATED VERSION**
         const currentTab = ref('行程');
         const selectedDay = ref(0); 
 
@@ -764,10 +775,10 @@
         }
 
         // Flights
-        const flights = ref([
-          { id: 'outbound', type: 'outbound', date: '2025-12-15', code: 'CX400', depTime: '12:45', arrTime: '14:45', fromCode: 'HKG', fromTerminal: 'T1', toCode: 'TPE', toTerminal: 'T2', title: 'Cathay Pacific', note: '經濟艙 (已劃位)', isConfirmed: true },
-          { id: 'return', type: 'return', date: '2025-12-18', code: 'CX443', depTime: '17:00', arrTime: '18:55', fromCode: 'TPE', fromTerminal: 'T2', toCode: 'HKG', toTerminal: 'T1', title: 'Cathay Pacific', note: '經濟艙', isConfirmed: false },
-        ]);
+        const flights = ref(initializeListWithIds([
+          { type: 'outbound', date: '2025-12-15', code: 'CX400', depTime: '12:45', arrTime: '14:45', fromCode: 'HKG', fromTerminal: 'T1', toCode: 'TPE', toTerminal: 'T2', title: 'Cathay Pacific', note: '經濟艙 (已劃位)', isConfirmed: true },
+          { type: 'return', date: '2025-12-18', code: 'CX443', depTime: '17:00', arrTime: '18:55', fromCode: 'TPE', fromTerminal: 'T2', toCode: 'HKG', toTerminal: 'T1', title: 'Cathay Pacific', note: '經濟艙', isConfirmed: false },
+        ]));
         const activeFlight = computed(() => {
           const dayType = days[selectedDay.value]?.type;
           if (dayType === 'flight-out') return flights.value.find(f => f.type === 'outbound');
@@ -842,14 +853,15 @@
         const shoppingModalOpen = ref(false);
         const newShoppingItem = reactive({ id: null, name: '', imageURL: '', isDone: false });
 
-
-        const expenses = ref([
-          { id: Date.now()+1, name:'雅香火鍋', amount: 300, category:'餐飲', date: '12/15', isDone:false, currency: 'TWD', paymentMethod: 'cash' },
-          { id: Date.now()+2, name:'Taxi 機場->酒店', amount: 250, category:'交通', date: '12/15', isDone:false, currency: 'TWD', paymentMethod: 'credit_card' }
-        ]);
+        // Expenses - REMOVED isDone
+        const expenses = ref(initializeListWithIds([
+          { name:'雅香火鍋', amount: 300, category:'餐飲', date: '12/15', currency: 'TWD', paymentMethod: 'cash' },
+          { name:'Taxi 機場->酒店', amount: 250, category:'交通', date: '12/15', currency: 'TWD', paymentMethod: 'credit_card' }
+        ]));
         const expenseModalOpen = ref(false);
         const expenseFilter = ref('all'); // 'all', 'credit', 'cash'
-        const newExpense = reactive({ name:'', amount:null, currency:'TWD', category:'餐飲', paymentMethod: 'cash' });
+        // ADDED ID and DATE to newExpense
+        const newExpense = reactive({ id: null, name:'', amount:null, currency:'TWD', category:'餐飲', paymentMethod: 'cash', date: '' });
         
         const infoList = ref(initializeListWithIds([
           { title:'西門町永安棧 (電話)', note:'+886 2 2352 3090', isDone:false, imageURL: '' },
@@ -1019,7 +1031,7 @@
         const flightModalOpen = ref(false);
         const newFlight = reactive({ id: null, type: 'outbound', date: '', code: '', depTime: '', arrTime: '', fromCode: '', fromTerminal: '', toCode: '', toTerminal: '', title: '', note: '' });
         function openFlightModal(flightId = null){
-          Object.assign(newFlight, { id: null, type: 'outbound', date: days[selectedDay.value]?.date ? `2025-12-${days[selectedDay.value].date.padStart(2, '0')}` : '2025-12-15', code: '', depTime: '', arrTime: '', fromCode: '', fromTerminal: '', toCode: '', toTerminal: '', title: '', note: '' });
+          Object.assign(newFlight, { id: null, type: 'outbound', date: days[selectedDay.value]?.date ? `2025-12-${days[selectedDay.value].date.padStart(2, '0')}` : '2025-12-15', code: '', depTime: '', arrTime: '', fromCode: 'HKG', fromTerminal: '', toCode: 'TPE', toTerminal: '', title: '', note: '' });
           const dayType = days[selectedDay.value]?.type;
           if (dayType === 'flight-out') newFlight.type = 'outbound';
           else if (dayType === 'flight-return') newFlight.type = 'return';
@@ -1030,13 +1042,7 @@
           }
           
           if (flight) Object.assign(newFlight, deepClone(flight));
-          else if(dayType === 'flight-out' && !flightId){
-            newFlight.fromCode = 'HKG';
-            newFlight.toCode = 'TPE';
-          } else if(dayType === 'flight-return' && !flightId){
-            newFlight.fromCode = 'TPE';
-            newFlight.toCode = 'HKG';
-          }
+          
           flightModalOpen.value = true;
         }
         function closeFlightModal() {
@@ -1192,30 +1198,70 @@
         }
 
 
-        // Expenses (Updated for Modal & Payment Method)
-        function openExpenseModal() {
+        // Expenses (Updated for Modal & Payment Method & Edit)
+        function openExpenseModal(item = null) {
             // Reset
-            Object.assign(newExpense, { name:'', amount:null, currency:'TWD', category:'餐飲', paymentMethod: 'cash' });
+            Object.assign(newExpense, { 
+                id: null, 
+                name: '', 
+                amount: null, 
+                currency: 'TWD', 
+                category: '餐飲', 
+                paymentMethod: 'cash', 
+                date: getTodayDateString() // Default to today's YYYY-MM-DD for new entry
+            });
+
+            if (item) {
+                Object.assign(newExpense, deepClone(item));
+                
+                // Convert expense.date from 'MM/DD' format (stored for display) to 'YYYY-MM-DD' for HTML date input
+                if (newExpense.date) {
+                    const [month, day] = newExpense.date.split('/');
+                    const currentYear = new Date().getFullYear(); // Assume current year for trip context
+                    newExpense.date = `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                }
+            }
+
             expenseModalOpen.value = true;
         }
         function closeExpenseModal() {
             expenseModalOpen.value = false;
         }
-        function addExpense(){
-          if (!newExpense.name.trim() || !newExpense.amount) return;
-          const d = new Date();
-          const dateString = `${d.getMonth() + 1}/${d.getDate()}`;
+        function saveExpense(){ // Renamed from addExpense
+          if (!newExpense.name.trim() || !newExpense.amount || !newExpense.date) return;
+          
+          // Format the date to MM/DD for display and simpler storage
+          let dateString = newExpense.date;
+          try {
+             const dateObj = new Date(newExpense.date);
+             dateString = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+          } catch (e) {
+              console.warn("Invalid date format, using raw input:", newExpense.date);
+              // Fallback: if input is invalid, just use the raw string
+              dateString = newExpense.date.split('-').slice(1).join('/'); // e.g., '2025-12-15' -> '12/15'
+          }
+
           const expenseToSave = {
-            id: generateId(),
+            id: newExpense.id || generateId(),
             name: newExpense.name.trim(),
             amount: Number(newExpense.amount),
             currency: newExpense.currency,
             category: newExpense.category,
             paymentMethod: newExpense.paymentMethod,
-            date: dateString,
-            isDone: false,
+            date: dateString, // Stored as MM/DD
           };
-          expenses.value.unshift(expenseToSave); // Add to top
+
+          if (newExpense.id) {
+              // Editing existing
+              const index = expenses.value.findIndex(e => e.id === newExpense.id);
+              if (index !== -1) {
+                  expenses.value.splice(index, 1, expenseToSave);
+              }
+          } else {
+              // New entry
+              expenses.value.unshift(expenseToSave); 
+          }
+          
           closeExpenseModal();
           saveAll();
         }
@@ -1254,10 +1300,15 @@
           if (data.shoppingList) shoppingList.value = initializeListWithIds(data.shoppingList);
           
           if (data.expenses) {
-              // Ensure paymentMethod exists for older data
+              // Clean up and ensure necessary fields for expenses
               expenses.value = initializeListWithIds(data.expenses).map(e => ({
-                  ...e,
-                  paymentMethod: e.paymentMethod || 'cash'
+                  id: e.id,
+                  name: e.name,
+                  amount: Number(e.amount) || 0,
+                  currency: e.currency || 'TWD',
+                  category: e.category || '其他',
+                  paymentMethod: e.paymentMethod || 'cash',
+                  date: e.date || new Date().toLocaleDateString('en-GB', {month: '2-digit', day: '2-digit'}).replace('/', '/'),
               }));
           }
           if (data.infoList) infoList.value = initializeListWithIds(data.infoList);
@@ -1389,7 +1440,7 @@
           quickItinerary, addQuickItinerary,
           selectedMapLocation, showLocationOnMap, generateMapLink,
           shoppingList, shoppingModalOpen, newShoppingItem, openShoppingModal, closeShoppingModal, saveShoppingItem, removeShoppingItem, isInstagramLink,
-          expenses, newExpense, addExpense, removeExpense, expenseFilter, filteredExpenses, totalExpense,
+          expenses, newExpense, saveExpense, removeExpense, expenseFilter, filteredExpenses, totalExpense,
           expenseModalOpen, openExpenseModal, closeExpenseModal,
           infoList, infoModalOpen, newInfoItem, openInfoModal, closeInfoModal, saveInfoItem, removeInfo,
           activeFlight, shouldShowFlightCard, weather, weatherIconClass, rate, formattedRate, lastRateUpdateLabel,
