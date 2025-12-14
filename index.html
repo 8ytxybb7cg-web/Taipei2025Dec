@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <title>Travel Sync v3.13</title>
+  <title>Travel Sync v3.14</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -266,18 +266,6 @@
     .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
     .fade-enter-from, .fade-leave-to { opacity: 0; }
     
-    /* Weather Mini Grid Items */
-    .weather-stat-item {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 12px;
-        padding: 8px 4px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
   </style>
 </head>
 
@@ -368,44 +356,34 @@
               </div>
           </div>
           
-          <div class="mt-4 flex flex-col gap-3 border-t border-gray-400/20 pt-3">
-             <div class="flex items-center justify-between">
+          <div class="mt-4 border-t border-gray-400/20 pt-3">
+             <div class="flex flex-wrap items-center justify-between gap-y-2">
                  <div class="flex items-center gap-2">
-                     <span class="text-sm font-semibold text-gray-700">{{ weather.desc }}</span>
+                     <span class="text-lg font-bold text-gray-800 tracking-tight">{{ weather.desc }}</span>
                      
+                     <div class="flex items-center gap-1 text-[11px] font-bold text-[#007AFF] bg-blue-50/80 px-2 py-0.5 rounded-full border border-blue-100/50">
+                        <i class="ph ph-drop-fill text-xs"></i> {{ weather.rain }}%
+                     </div>
+
                      <div v-if="weather.warning" class="flex items-center gap-1 text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 animate-pulse">
                         <i class="ph ph-warning-fill"></i> {{ weather.warning }}
                      </div>
                  </div>
-                 <div class="flex gap-3 text-sm font-medium">
-                     <span class="text-gray-800">H:{{ weather.max }}°</span>
-                     <span class="text-gray-500">L:{{ weather.min }}°</span>
+                 
+                 <div class="flex gap-2 text-sm font-semibold text-gray-700/80">
+                     <span>H:{{ weather.max }}°</span>
+                     <span>L:{{ weather.min }}°</span>
                  </div>
              </div>
 
-             <div class="flex items-center">
-                 <div class="flex items-center gap-1.5 text-[11px] font-bold text-[#007AFF] bg-blue-50/80 px-2.5 py-1 rounded-full border border-blue-100/50">
-                    <i class="ph ph-drop-fill text-xs"></i> 降雨機率：{{ weather.rain }}%
-                 </div>
-             </div>
-             
-             <div class="grid grid-cols-4 gap-2 mt-1">
-                <div class="weather-stat-item">
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">體感</span>
-                    <span class="text-xs font-bold text-gray-800">{{ weather.feelsLike }}°</span>
-                </div>
-                <div class="weather-stat-item">
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">濕度</span>
-                    <span class="text-xs font-bold text-gray-800">{{ weather.humidity }}<span class="text-[9px]">%</span></span>
-                </div>
-                <div class="weather-stat-item">
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">風速</span>
-                    <span class="text-xs font-bold text-gray-800">{{ weather.wind }}<span class="text-[9px] scale-75 inline-block">km/h</span></span>
-                </div>
-                <div class="weather-stat-item">
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">UV</span>
-                    <span class="text-xs font-bold text-gray-800">{{ weather.uv }}</span>
-                </div>
+             <div class="mt-2.5 flex items-center gap-2.5 text-xs text-gray-500 font-medium overflow-x-auto no-scrollbar whitespace-nowrap opacity-80">
+                <span>體感 {{ weather.feelsLike }}°</span>
+                <span class="text-gray-300">•</span>
+                <span>濕度 {{ weather.humidity }}%</span>
+                <span class="text-gray-300">•</span>
+                <span>風速 {{ weather.wind }}km/h</span>
+                <span class="text-gray-300">•</span>
+                <span>UV {{ weather.uv }}</span>
              </div>
           </div>
         </div>
@@ -1004,7 +982,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     createApp({
       setup() {
-        const appVersion = ref('v3.13 (Build 251214)'); // Version Updated
+        const appVersion = ref('v3.14 (Build 251214)'); // Version Updated
         const currentTab = ref('行程');
         const selectedDay = ref(0); 
 
