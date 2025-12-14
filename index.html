@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1.0,user-scalable=no" />
-  <title>eMenu Taipei v3.05</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>eMenu Taipei v3.08</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -12,127 +12,226 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
-    /* iOS 26 Concept Variables */
+    /* --- iOS 26 System Variables --- */
     :root {
-      --glass-base: rgba(255, 255, 255, 0.65);
-      --glass-border: rgba(255, 255, 255, 0.45);
-      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-      --card-radius: 24px;
-      --dock-bg: rgba(245, 245, 255, 0.85);
+      --ios-bg: #F2F2F7;
+      --ios-card-bg: rgba(255, 255, 255, 0.72);
+      --ios-card-border: rgba(255, 255, 255, 0.4);
+      --ios-primary: #007AFF; /* Sky Blue - System Action */
+      --ios-primary-active: #0062cc;
+      --ios-text-primary: #000000;
+      --ios-text-secondary: #8E8E93;
+      --ios-text-tertiary: #C7C7CC;
+      --ios-separator: rgba(60, 60, 67, 0.12); /* Standard iOS Separator */
+      --glass-blur: blur(20px);
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-    
-    html, body, #app { height: 100%; }
-    
+
+    html, body {
+      height: 100%;
+      overflow: hidden; /* Prevent body scroll, handle in #app */
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+      font-family: var(--font-stack);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       background-color: #000;
       margin: 0;
-      color: #1d1d1f;
+      color: var(--ios-text-primary);
     }
 
     /* Utilities */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* Transitions */
-    .fade-enter-active, .fade-leave-active { transition: opacity .3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .fade-enter-from, .fade-leave-to { opacity: 0; }
-    
-    /* Increased padding for bottom dock */
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 90px); }
-    .task-done { text-decoration: line-through; color: #86868b; opacity: 0.7; }
-
-    /* --- iOS 26 Glass Components --- */
     
-    /* Global Glass Card Style */
-    .glass-card { 
-        border-radius: var(--card-radius);
-        background: linear-gradient(145deg, rgba(255,255,255,0.7), rgba(255,255,255,0.45));
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--glass-shadow);
-        padding: 1rem;
+    /* Typography Helpers */
+    .text-ios-title { font-weight: 700; letter-spacing: -0.02em; }
+    .text-ios-sub { color: var(--ios-text-secondary); font-size: 13px; font-weight: 400; }
+    
+    /* --- Components --- */
+
+    /* iOS Card (Glass) */
+    .ios-card {
+      background: var(--ios-card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--ios-card-border);
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.02); /* Very subtle shadow */
+      overflow: hidden;
     }
 
     /* List Items */
-    .list-glass {
-        background: rgba(255, 255, 255, 0.5);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.2s;
+    .ios-list-item {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      margin-bottom: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.2s, transform 0.1s;
+      border: 1px solid rgba(255,255,255,0.6);
     }
-    .list-glass:active {
-        transform: scale(0.98);
-        background: rgba(255, 255, 255, 0.65);
-    }
-
-    /* The Dock - Enlarged & Taller */
-    .iphone-dock {
-        background: var(--dock-bg);
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border-radius: 32px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        padding: 0.8rem 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
+    .ios-list-item:active {
+      background: rgba(240, 240, 245, 0.9);
+      transform: scale(0.99);
     }
 
-    /* Expense Wallet Card */
-    .expense-card {
-      background: rgba(20, 20, 35, 0.65);
-      backdrop-filter: blur(25px) saturate(120%);
-      -webkit-backdrop-filter: blur(25px) saturate(120%);
-      color: #ffffff;
-      border-radius: 26px;
-      padding: 1.5rem;
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255,255,255,0.1);
-      position: relative;
+    /* Inputs (iOS System Style) */
+    .ios-input {
+      background: #EEF0F2; /* Light Gray Background */
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 17px; /* iOS Standard Input Size */
+      color: #000;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .ios-input:focus {
+      background: #E5E7EB;
+      outline: none;
+    }
+    .ios-input::placeholder { color: #A1A1A6; }
+
+    /* Modals (New Structure) */
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+    }
+    
+    .ios-modal-container {
+      background: rgba(250, 250, 250, 0.96); /* Slightly off-white */
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border-radius: 32px; /* Super rounded */
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh; /* Never fill screen completely */
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
       overflow: hidden;
     }
-    .expense-card::before {
-        content: '';
-        position: absolute;
-        top: -50%; left: -50%; width: 200%; height: 200%;
-        background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.15), transparent 60%);
-        pointer-events: none;
-        z-index: 0;
+
+    .ios-modal-header {
+      padding: 18px 24px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 17px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      background: rgba(255,255,255,0.5);
+      flex-shrink: 0;
     }
 
-    /* Tab Button Styles */
-    .tab-btn {
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        border: 1px solid transparent;
-    }
-    .tab-btn-active {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(16px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border-color: rgba(255,255,255,0.6);
-        transform: translateY(-2px) scale(1.02);
-    }
-    .tab-btn-inactive {
-        background: rgba(255, 255, 255, 0.25);
-        backdrop-filter: blur(8px);
-        border-color: rgba(255,255,255,0.15);
-        color: #555;
+    .ios-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      -webkit-overflow-scrolling: touch;
     }
 
-    @media screen and (max-width: 768px) {
-        input, select, textarea { font-size: 16px !important; }
+    .ios-modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(20px);
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
-    .sync-status { transition: all 0.3s ease; }
+    /* Buttons */
+    .btn-ios-cancel {
+      flex: 1;
+      height: 50px;
+      border-radius: 14px;
+      background: #E5E5EA; /* iOS System Gray 5 */
+      color: #000;
+      font-weight: 600;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+    .btn-ios-cancel:active { opacity: 0.7; }
+
+    .btn-ios-primary {
+      flex: 1;
+      height: 50px;
+      border-radius: 14px;
+      background: var(--ios-primary);
+      color: white;
+      font-weight: 600;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3); /* Blue Glow */
+      transition: transform 0.1s, background 0.2s;
+    }
+    .btn-ios-primary:active { transform: scale(0.98); background: var(--ios-primary-active); }
+    .btn-ios-primary:disabled { opacity: 0.5; box-shadow: none; }
+
+    /* Dock */
+    .iphone-dock {
+      background: rgba(250, 250, 250, 0.85);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border-radius: 38px;
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    /* Tab Buttons Top */
+    .day-tab {
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.4);
+    }
+    .day-tab.active {
+      background: #fff;
+      border-color: rgba(0,0,0,0.04);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      transform: translateY(-2px);
+    }
+    .day-tab.active span { color: var(--ios-primary); }
+
+    /* Animations */
+    .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
+    .fade-enter-from, .fade-leave-to { opacity: 0; }
+    
     .rotate-icon { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .task-done { text-decoration: line-through; color: var(--ios-text-tertiary); opacity: 0.8; }
+    
+    /* Expense Card Specifics */
+    .expense-card {
+        background: #1C1C1E; /* iOS Dark System bg */
+        border-radius: 22px;
+        padding: 24px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .expense-card::after {
+        content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle at 80% 20%, rgba(10, 132, 255, 0.3), transparent 50%);
+        pointer-events: none;
+    }
+
   </style>
 </head>
 
@@ -141,547 +240,553 @@
 
     <div class="absolute inset-0 z-0 pointer-events-none">
       <img src="./IMG_6732.jpeg?auto=format&fit=crop&w=2000&q=80"
-           class="w-full h-full object-cover" alt="Taipei Background">
-      <div class="absolute inset-0 bg-gradient-to-b from-slate-100/60 via-slate-100/40 to-slate-200/90 backdrop-blur-[2px]"></div>
+           class="w-full h-full object-cover opacity-80" alt="Taipei Background">
+      <div class="absolute inset-0 bg-[#F2F2F7]/80 backdrop-blur-[20px]"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent"></div>
     </div>
 
-    <main class="relative z-10 flex-1 overflow-y-auto no-scrollbar pb-safe pt-8 px-5">
+    <main class="relative z-10 flex-1 overflow-y-auto no-scrollbar pb-safe pt-12 px-5">
 
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex-1 min-w-0 mr-2">
-          <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 drop-shadow-sm whitespace-nowrap">eMenu Taipei <span class="align-middle text-2xl">🇹🇼</span></h1>
-          <div class="mt-1 pl-0.5">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">台北 · 12/15 — 12/18</p>
-            <div class="flex items-center gap-3 mt-1.5">
-                <p class="text-[10px] font-mono text-gray-400">{{ appVersion }}</p>
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center gap-1.5 bg-white/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/50 shadow-sm">
-                        <div class="w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]" 
-                            :class="{
-                                'bg-emerald-500 text-emerald-500': syncState === 'synced', 
-                                'bg-yellow-500 text-yellow-500 animate-pulse': syncState === 'saving', 
-                                'bg-blue-500 text-blue-500 animate-pulse': syncState === 'loading',
-                                'bg-red-500 text-red-500': syncState === 'error'
-                            }"></div>
-                        <span class="text-[10px] font-semibold sync-status whitespace-nowrap text-gray-600">
-                            {{ syncStatusText }}
-                        </span>
-                    </div>
-                    <button @click="forceReloadCloud" class="bg-white/70 backdrop-blur-md p-1.5 rounded-full border border-white/50 text-gray-600 shadow-sm active:scale-90 transition-transform" title="同步">
-                        <i class="ph ph-arrows-clockwise text-xs" :class="{'rotate-icon': syncState === 'loading'}"></i>
-                    </button>
-                </div>
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-[34px] leading-tight font-bold tracking-tight text-black drop-shadow-sm">
+            eMenu Taipei
+          </h1>
+          <div class="flex items-center gap-3 mt-1 pl-1">
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">12/15 — 12/18</span>
+            
+            <div class="flex items-center gap-2 bg-white/60 px-2 py-0.5 rounded-full border border-black/5">
+                <div class="w-1.5 h-1.5 rounded-full transition-colors duration-300"
+                     :class="{
+                        'bg-green-500': syncState === 'synced',
+                        'bg-yellow-400': syncState === 'saving' || syncState === 'loading',
+                        'bg-red-500': syncState === 'error'
+                     }"></div>
+                <span class="text-[10px] font-medium text-gray-500">{{ syncStatusText }}</span>
             </div>
+            
+             <button @click="forceReloadCloud" class="text-gray-400 hover:text-gray-600 transition" title="Reload">
+                <i class="ph ph-arrows-clockwise text-xs" :class="{'rotate-icon': syncState === 'loading'}"></i>
+            </button>
           </div>
         </div>
-       
-        <div class="text-right flex-shrink-0">
-          <div class="glass-card !p-2 !rounded-xl !bg-white/60 inline-block text-right shadow-sm border-emerald-100/50">
-             <div class="text-[10px] font-bold text-emerald-600">即時匯率</div>
-          </div>
-          <div class="whitespace-nowrap font-medium text-gray-700 text-xs mt-1">
-             1 TWD ≈ <span class="text-emerald-600 font-bold text-sm">{{ formattedRate }}</span> HKD
-          </div>
+      
+        <div class="text-right">
+           <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">匯率 (HKD/TWD)</div>
+           <div class="text-xl font-bold text-gray-800 tracking-tight font-mono">{{ formattedRate }}</div>
         </div>
       </div>
 
-      <div class="mb-6">
-        <div class="flex justify-between gap-3 overflow-x-auto no-scrollbar pb-4 px-1">
+      <div class="mb-8">
+        <div class="flex justify-between gap-3 overflow-x-auto no-scrollbar py-1 px-1">
           <button @click="currentTab = '準備'" 
-               class="tab-btn flex-shrink-0 w-[21%] h-[84px] rounded-2xl flex flex-col items-center justify-center text-xs font-semibold relative overflow-hidden"
-               :class="currentTab === '準備' ? 'tab-btn-active text-sky-600' : 'tab-btn-inactive'">
-             <div v-if="currentTab === '準備'" class="absolute inset-0 bg-gradient-to-br from-sky-100/50 to-transparent pointer-events-none"></div>
-             <i class="ph ph-list-checks text-2xl mb-1 relative z-10"></i>
-             <span class="relative z-10">準備</span>
+               class="day-tab flex-shrink-0 w-[20%] h-[76px] rounded-2xl flex flex-col items-center justify-center text-xs relative overflow-hidden group"
+               :class="{ 'active': currentTab === '準備' }">
+             <i class="ph ph-list-checks text-2xl mb-1 text-gray-400 transition-colors group-[.active]:text-[#007AFF]"></i>
+             <span class="font-medium text-gray-500 group-[.active]:font-bold">準備</span>
           </button>
           
           <button v-for="(d, i) in days" :key="i"
                   @click="selectDay(i); currentTab = '行程'"
-                  class="tab-btn flex-shrink-0 w-[22%] h-[84px] rounded-2xl flex flex-col items-center justify-center relative overflow-hidden"
-                  :class="selectedDay === i && currentTab === '行程' ? 'tab-btn-active text-sky-700' : 'tab-btn-inactive'">
-            <div v-if="selectedDay === i && currentTab === '行程'" class="absolute inset-0 bg-gradient-to-br from-teal-100/50 to-transparent pointer-events-none"></div>
-            <span class="text-[10px] font-bold uppercase tracking-wide opacity-70 mb-0.5 relative z-10">Day {{ i + 1 }}</span>
-            <span class="text-[11px] font-medium relative z-10">{{ d.week }}</span>
-            <span class="text-xl font-bold mt-0.5 leading-none relative z-10">{{ d.date }}</span>
+                  class="day-tab flex-shrink-0 w-[22%] h-[76px] rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group"
+                  :class="{ 'active': selectedDay === i && currentTab === '行程' }">
+            <span class="text-[10px] font-bold uppercase text-gray-400 mb-0.5 group-[.active]:text-[#007AFF]">Day {{ i + 1 }}</span>
+            <span class="text-[11px] font-medium text-gray-400 group-[.active]:text-gray-800">{{ d.week }}</span>
+            <span class="text-lg font-bold mt-0.5 leading-none text-gray-600 group-[.active]:text-black">{{ d.date }}</span>
           </button>
         </div>
       </div>
 
       <div v-if="currentTab === '行程'" class="space-y-5 mb-6">
-        <div class="glass-card flex items-center justify-between relative overflow-hidden group">
-          <div class="absolute right-0 top-0 w-32 h-32 bg-sky-200/30 blur-[40px] rounded-full -mr-10 -mt-10 pointer-events-none"></div>
-          
-          <div class="pl-2 relative z-10">
-              <div class="flex items-center gap-1.5 text-gray-500 mb-1">
-                <i class="ph ph-map-pin-simple-area text-xs"></i>
-                <span class="text-[11px] font-bold uppercase tracking-wider">台北市</span>
+        
+        <div class="ios-card flex items-center justify-between p-5 relative">
+          <div>
+              <div class="flex items-center gap-1.5 text-gray-400 mb-1">
+                <i class="ph ph-map-pin text-xs"></i>
+                <span class="text-[11px] font-bold uppercase tracking-wider">Taipei City</span>
               </div>
               <div class="flex items-baseline gap-1">
-                <span class="text-5xl font-light tracking-tighter text-gray-800">{{ weather.temp }}°</span>
+                <span class="text-5xl font-light tracking-tighter text-black">{{ weather.temp }}°</span>
               </div>
-              <div class="mt-1 flex items-center gap-2">
-                 <span class="px-2 py-0.5 bg-gray-100/50 rounded-full text-xs font-semibold text-gray-600 border border-white/20">{{ weather.desc }}</span>
-                 <span class="text-sm font-bold text-sky-600 flex items-center bg-white/60 px-2 py-1 rounded-full">
-                   降雨量 {{ weather.rain }}%
+              <div class="mt-2 flex items-center gap-3">
+                 <span class="text-sm font-medium text-gray-600">{{ weather.desc }}</span>
+                 <span v-if="weather.rain > 0" class="text-xs font-bold text-[#007AFF] bg-blue-50 px-2 py-0.5 rounded-md">
+                    <i class="ph ph-drop-fill mr-0.5"></i> {{ weather.rain }}%
                  </span>
               </div>
           </div>
-          <div class="pr-2 relative z-10">
-             <i :class="weatherIconClass" class="text-[5rem] text-sky-500/90 drop-shadow-sm filter"></i>
+          <div class="text-right">
+             <i :class="weatherIconClass" class="text-[4rem] text-gray-800/80"></i>
           </div>
         </div>
 
         <transition name="fade">
           <div v-if="shouldShowFlightCard" 
-               class="rounded-[28px] p-5 text-white shadow-xl relative overflow-hidden border border-white/20" 
-               style="background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);">
-              <div class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+               class="rounded-[22px] p-5 text-white shadow-lg relative overflow-hidden" 
+               style="background: linear-gradient(135deg, #0A84FF 0%, #007AFF 100%);">
               
-              <button @click.stop="openFlightModal(activeFlight.id)" class="absolute top-4 right-4 z-20 text-white/70 hover:text-white bg-black/20 hover:bg-black/30 p-1.5 rounded-full transition backdrop-blur-sm">
+              <button @click.stop="openFlightModal(activeFlight.id)" class="absolute top-4 right-4 z-20 text-white/60 hover:text-white bg-black/10 hover:bg-black/20 p-2 rounded-full transition">
                   <i class="ph ph-pencil-simple text-sm"></i>
               </button>
 
-              <div class="flex justify-between items-center mb-4 relative z-10">
-                <div class="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 tracking-widest">航班資訊</div>
-                <div class="text-right mr-8"> <div class="font-mono font-bold text-xl leading-none">{{ activeFlight.depTime }}</div>
-                    <div class="text-[10px] opacity-70 mt-1 font-medium">抵達 {{ activeFlight.arrTime }}</div>
+              <div class="flex justify-between items-start mb-6 relative z-10">
+                <div class="flex flex-col">
+                   <span class="text-[10px] font-bold uppercase tracking-widest opacity-60">Boarding Pass</span>
+                   <span class="text-sm font-semibold mt-1">{{ activeFlight.title }}</span>
+                </div>
+                <div class="text-right mr-8">
+                   <div class="text-2xl font-mono font-bold leading-none">{{ activeFlight.depTime }}</div>
+                   <div class="text-[10px] opacity-70 mt-1 font-medium">To {{ activeFlight.arrTime }}</div>
                 </div>
               </div>
               
-              <div class="flex items-center justify-between relative z-10 px-1">
-                <div class="text-center">
-                   <div class="text-4xl font-black tracking-widest drop-shadow-md">{{ activeFlight.fromCode }}</div>
-                  <div class="text-[10px] font-bold opacity-80 mt-1 uppercase tracking-wide">{{ activeFlight.fromTerminal }}</div>
+              <div class="flex items-center justify-between relative z-10">
+                <div class="text-center min-w-[60px]">
+                   <div class="text-3xl font-bold tracking-wider">{{ activeFlight.fromCode }}</div>
+                   <div class="text-[10px] font-bold opacity-70 mt-1 uppercase">{{ activeFlight.fromTerminal }}</div>
                 </div>
                 
-                <div class="flex-1 px-4 text-center flex flex-col items-center">
-                   <i class="ph ph-airplane-tilt text-2xl mb-2 opacity-90"></i>
-                  <div class="w-full h-[2px] bg-gradient-to-r from-transparent via-white/50 to-transparent relative">
-                      <div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full"></div>
-                      <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full"></div>
-                  </div>
-                  <div class="text-[10px] mt-2 opacity-80 font-medium">{{ activeFlight.note }}</div>
+                <div class="flex-1 px-4 flex flex-col items-center">
+                   <i class="ph ph-airplane-tilt text-2xl mb-2 opacity-80"></i>
+                   <div class="w-full h-[1px] bg-white/30 relative"></div>
+                   <div class="text-[10px] mt-2 opacity-80 font-medium tracking-wide">{{ activeFlight.note }}</div>
                 </div>
                 
-                <div class="text-center">
-                   <div class="text-4xl font-black tracking-widest drop-shadow-md">{{ activeFlight.toCode }}</div>
-                  <div class="text-[10px] font-bold opacity-80 mt-1 uppercase tracking-wide">{{ activeFlight.toTerminal }}</div>
+                <div class="text-center min-w-[60px]">
+                   <div class="text-3xl font-bold tracking-wider">{{ activeFlight.toCode }}</div>
+                   <div class="text-[10px] font-bold opacity-70 mt-1 uppercase">{{ activeFlight.toTerminal }}</div>
                 </div>
               </div>
-
-              <div class="mt-5 flex justify-between items-center relative z-10 border-t border-white/20 pt-3">
-                <div class="text-xs font-medium opacity-90">{{ activeFlight.code }} <span class="mx-1">·</span> {{ activeFlight.title }}</div>
-                <div class="bg-white/90 text-sky-600 px-3 py-1 rounded-full text-[10px] font-bold shadow-sm">已確認</div>
+              
+              <div class="mt-5 pt-3 border-t border-white/20 flex justify-between items-center text-xs font-medium opacity-80">
+                  <span>{{ activeFlight.code }}</span>
+                  <span class="bg-white/20 px-2 py-0.5 rounded text-[10px]">Confirmed</span>
               </div>
             </div>
         </transition>
 
         <transition name="fade">
-            <div v-if="selectedMapLocation" class="glass-card !bg-white/95 border-2 border-sky-100/50 relative !p-5">
-               <button @click="selectedMapLocation = null" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">
-                    <i class="ph ph-x text-lg"></i>
+            <div v-if="selectedMapLocation" class="ios-card bg-white p-4 border-2 border-[#007AFF]/10 relative">
+               <button @click="selectedMapLocation = null" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded-full bg-gray-100 transition">
+                    <i class="ph ph-x text-base"></i>
                 </button>
-                <div class="mb-5 pr-6">
-                    <div class="flex items-center gap-2.5 mb-2">
-                         <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+                <div class="mb-4 pr-8">
+                    <div class="flex items-center gap-3 mb-1">
+                        <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500 flex-shrink-0">
                              <i class="ph ph-map-pin-fill text-lg"></i>
                         </div>
-                         <h4 class="text-lg font-bold text-gray-800 leading-tight">{{ selectedMapLocation.title }}</h4>
+                         <h4 class="text-lg font-bold text-gray-900 leading-tight">{{ selectedMapLocation.title }}</h4>
                     </div>
-                    <p class="text-sm text-gray-500 pl-[42px] leading-relaxed">{{ selectedMapLocation.address }}</p>
+                    <p class="text-sm text-gray-500 pl-[44px] leading-relaxed">{{ selectedMapLocation.address }}</p>
                 </div>
-                <div class="flex justify-center gap-3">
-                    <a :href="generateMapLink(selectedMapLocation.address, 'search')" target="_blank"
-                       class="flex-1 py-3 px-2 flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl font-bold shadow-sm active:scale-95 transition text-sm">
-                       <i class="ph ph-map-trifold text-lg text-blue-500"></i> Google Map
+                <div class="flex gap-3 pl-[44px]">
+                   <a :href="generateMapLink(selectedMapLocation.address, 'navigate')" target="_blank"
+                       class="flex-1 h-10 flex items-center justify-center gap-2 bg-[#007AFF] text-white rounded-xl font-bold active:scale-95 transition text-sm shadow-sm">
+                       <i class="ph ph-navigation-arrow text-lg"></i> 導航
+                   </a>
+                   <a :href="generateMapLink(selectedMapLocation.address, 'search')" target="_blank"
+                       class="h-10 px-4 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 rounded-xl font-bold active:scale-95 transition text-sm">
+                       Google Map
                     </a>
-                    <a :href="generateMapLink(selectedMapLocation.address, 'navigate')" target="_blank"
-                       class="flex-1 py-3 px-2 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border border-transparent rounded-xl font-bold shadow-lg shadow-emerald-200 active:scale-95 transition text-sm">
-                       <i class="ph ph-navigation-arrow text-lg"></i> 開始導航
-                     </a>
                 </div>
             </div>
         </transition>
       </div>
 
-      <div v-if="currentTab !== '準備' && currentTab !== '記帳'" class="mb-4 sticky top-2 z-20 pointer-events-none w-full flex justify-between items-center">
+      <div v-if="currentTab !== '準備' && currentTab !== '記帳'" class="mb-6 sticky top-2 z-20 pointer-events-none w-full flex justify-between items-center px-1">
         <div class="pointer-events-auto">
-             <button v-if="isFlightDay && currentTab === '行程'" @click="openFlightModal('new')" class="bg-blue-600/90 backdrop-blur-xl text-white pl-4 pr-5 py-2.5 rounded-full shadow-lg shadow-blue-400/30 active:scale-95 transition-all flex items-center gap-2 border border-white/20">
-                <i class="ph ph-airplane-tilt text-xl"></i>
-                <span class="text-sm font-bold tracking-wide">新增航班</span>
+             <button v-if="isFlightDay && currentTab === '行程'" @click="openFlightModal('new')" 
+                class="h-10 pl-3 pr-4 rounded-full bg-white/90 backdrop-blur-xl border border-gray-200 text-[#007AFF] shadow-sm active:scale-95 transition-all flex items-center gap-2">
+                <i class="ph ph-airplane-tilt text-lg"></i>
+                <span class="text-xs font-bold">新增航班</span>
              </button>
         </div>
 
-        <button @click="openAddModal" class="pointer-events-auto bg-gray-900/90 backdrop-blur-xl text-white pl-4 pr-5 py-2.5 rounded-full shadow-lg shadow-gray-400/30 active:scale-95 transition-all flex items-center gap-2 border border-white/20">
-           <i class="ph ph-plus-circle-fill text-xl text-sky-400"></i>
+        <button @click="openAddModal" 
+            class="pointer-events-auto h-11 pl-4 pr-5 rounded-full bg-[#007AFF] text-white shadow-lg shadow-blue-500/30 active:scale-95 transition-all flex items-center gap-2">
+           <i class="ph ph-plus text-xl text-white/90"></i>
            <span class="text-sm font-bold tracking-wide">新增項目</span>
         </button>
       </div>
 
-      <div class="rounded-[32px] p-1 transition-all duration-300" :class="{'!p-0': currentTab === '記帳'}">
+      <div class="rounded-3xl transition-all duration-300">
         
-          <div v-if="currentTab === '準備'">
-            <div class="flex items-center gap-2 mb-3 ml-2">
-                <i class="ph ph-checklist text-lg text-gray-400"></i>
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">準備清單</h3>
-            </div>
-            <ul class="space-y-3">
-              <li v-for="(note, i) in preTripNotes" :key="note.id" class="list-glass rounded-2xl p-4 flex justify-between items-center">
-                <div class="flex items-center gap-3 flex-1 min-w-0">
+         <div v-if="currentTab === '準備'">
+            <h3 class="ml-2 mb-3 text-xs font-bold text-gray-400 uppercase tracking-widest">To-Do List</h3>
+            <ul class="space-y-2.5">
+               <li v-for="(note, i) in preTripNotes" :key="note.id" class="ios-list-item">
+                <div class="flex items-center gap-3.5 flex-1 min-w-0">
                    <div class="relative cursor-pointer" @click="togglePreNoteDone(note.id)">
-                      <i class="ph text-2xl transition-colors" :class="note.isDone ? 'ph-check-circle-fill text-emerald-500' : 'ph-circle text-gray-300 hover:text-gray-400'"></i>
+                      <i class="ph text-2xl transition-colors" :class="note.isDone ? 'ph-check-circle-fill text-[#007AFF]' : 'ph-circle text-gray-300 hover:text-gray-400'"></i>
                   </div>
-                  <span class="font-medium text-[15px] truncate" :class="{'task-done': note.isDone, 'text-gray-800': !note.isDone}">{{ note.name }}</span>
+                  <span class="font-medium text-[16px] truncate" :class="{'task-done': note.isDone, 'text-gray-900': !note.isDone}">{{ note.name }}</span>
                 </div>
-                <div class="flex items-center gap-1 pl-2 flex-shrink-0">
-                  <button @click.stop="editPreNote(note)" class="text-gray-400 hover:text-sky-600 p-1.5"><i class="ph ph-pencil-simple text-base"></i></button>
-                  <button @click.stop="removePreNote(note.id)" class="text-gray-400 hover:text-red-500 p-1.5"><i class="ph ph-trash text-base"></i></button>
+                <div class="flex items-center gap-1 pl-2 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
+                   <button @click.stop="editPreNote(note)" class="text-gray-500 p-2"><i class="ph ph-pencil-simple text-lg"></i></button>
+                  <button @click.stop="removePreNote(note.id)" class="text-gray-500 hover:text-red-500 p-2"><i class="ph ph-trash text-lg"></i></button>
                 </div>
                </li>
-              <li v-if="preTripNotes.length === 0" class="p-8 text-sm text-gray-400 text-center border-2 border-dashed border-gray-200 rounded-3xl">還沒準備好嗎？加入一些項目吧！</li>
             </ul>
             
-            <div class="mt-6 glass-card !bg-white/60">
-              <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">快速新增</label>
-               <div class="flex gap-2">
-                <input v-model="newPreNote" @keyup.enter="addPreNote" class="flex-1 p-3 rounded-xl border border-gray-200 bg-white/50 text-base focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition" placeholder="例如：兌換台幣">
-                <button @click="addPreNote" class="px-5 bg-gray-900 text-white rounded-xl font-bold shadow-lg active:scale-95 transition">加入</button>
+            <div v-if="preTripNotes.length === 0" class="py-12 text-center">
+                <i class="ph ph-clipboard-text text-4xl text-gray-300 mb-2"></i>
+                <p class="text-sm text-gray-400">尚未建立準備清單</p>
+            </div>
+            
+            <div class="mt-6">
+               <div class="flex gap-3">
+                <input v-model="newPreNote" @keyup.enter="addPreNote" class="ios-input shadow-sm" placeholder="快速新增項目...">
+                <button @click="addPreNote" class="px-5 bg-black text-white rounded-xl font-bold active:scale-95 transition">加入</button>
               </div>
             </div>
           </div>
 
           <div v-if="currentTab === '行程'">
-            <div class="flex items-center gap-2 mb-3 ml-2">
-                <i class="ph ph-path text-lg text-gray-400"></i>
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">今日行程</h3>
-            </div>
-            <ul class="space-y-3 relative">
-               <div class="absolute left-[2.85rem] top-4 bottom-4 w-1 bg-gray-400/80 rounded-full z-0"></div>
-
-               <li v-for="(it, idx) in sortedItinerary" :key="it.id" 
+            <div class="relative pl-4 border-l-2 border-gray-200 ml-3 space-y-6 py-2">
+               <div v-for="(it, idx) in sortedItinerary" :key="it.id" 
                   @click="showLocationOnMap(it)"
-                  class="list-glass rounded-2xl p-4 flex justify-between items-center relative overflow-hidden cursor-pointer z-10 transition-all hover:shadow-md">
+                  class="relative group cursor-pointer">
                 
-                <div class="flex flex-col items-center mr-4 min-w-[3rem] border-r border-gray-100 pr-4">
-                    <span class="text-sm font-bold text-gray-800">{{ it.time || '--' }}</span>
+                <div class="absolute -left-[23px] top-1 w-3.5 h-3.5 rounded-full bg-white border-[3px] border-gray-300 group-hover:border-[#007AFF] transition-colors z-10"></div>
+                
+                <div class="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-white/50 shadow-sm transition-all active:scale-[0.99] active:bg-white">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-bold text-[#007AFF] font-mono bg-blue-50 px-1.5 rounded">{{ it.time || '--:--' }}</span>
+                            </div>
+                            <div class="font-bold text-[17px] text-gray-900 leading-snug">{{ it.title }}</div>
+                            <div v-if="it.note" class="text-sm text-gray-500 mt-1">{{ it.note }}</div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-1 pl-2">
+                             <button @click.stop="openItineraryModal(it)" class="text-gray-300 hover:text-[#007AFF] p-1.5"><i class="ph ph-pencil-simple text-lg"></i></button>
+                             <button @click.stop="removeItineraryItem(it.id)" class="text-gray-300 hover:text-red-500 p-1.5"><i class="ph ph-trash text-lg"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div v-if="(it.address || '').trim() !== ''" class="mt-2.5 flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-[#007AFF] transition-colors">
+                        <i class="ph ph-map-pin-line"></i>
+                        <span class="font-medium">查看地圖</span>
+                    </div>
                 </div>
-
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-[15px] text-gray-800 truncate">{{ it.title }}</div>
-                  <div class="text-xs text-gray-500 mt-0.5 truncate">{{ it.note }}</div>
-                   <div v-if="(it.address || '').trim() !== ''" class="text-[10px] text-sky-600 mt-1.5 flex items-center font-medium bg-sky-50/50 w-fit px-1.5 py-0.5 rounded border border-sky-100">
-                      <i class="ph ph-map-pin-line mr-1"></i> 查看地圖
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-1 pl-2 flex-shrink-0">
-                    <button @click.stop="openItineraryModal(it)" class="text-gray-400 hover:text-sky-600 p-1.5"><i class="ph ph-pencil-simple text-base"></i></button>
-                    <button @click.stop="removeItineraryItem(it.id)" class="text-gray-400 hover:text-red-500 p-1.5"><i class="ph ph-trash text-base"></i></button>
-                </div>
-              </li>
-            </ul>
-
-             <p v-if="sortedItinerary.length === 0" class="p-8 text-sm text-gray-400 text-center border-2 border-dashed border-gray-200 rounded-3xl mt-4">今日暫無行程，隨心探索吧！</p>
-            
-            <div class="mt-6 glass-card !bg-white/60"> 
-               <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">快速新增</label>
-               <div class="flex gap-2">
-                   <input v-model="quickItinerary.time" type="time" class="flex-[2] w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-center font-medium focus:outline-none focus:ring-2 focus:ring-sky-500/50">
-                   <input v-model="quickItinerary.title" @keyup.enter="addQuickItinerary" class="flex-[3] w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-base focus:outline-none focus:ring-2 focus:ring-sky-500/50" placeholder="活動名稱...">
-                   <button @click="addQuickItinerary" class="px-4 bg-sky-500 text-white rounded-xl font-bold shadow-md active:scale-95 transition flex items-center justify-center"><i class="ph ph-plus text-xl"></i></button>
               </div>
+            </div>
+
+            <p v-if="sortedItinerary.length === 0" class="py-12 text-center text-gray-400 text-sm">
+                <i class="ph ph-coffee text-3xl mb-2 block text-gray-300"></i>
+                今日無行程，享受自由時光
+            </p>
+            
+            <div class="mt-8 ios-card !bg-white/50 p-3"> 
+               <div class="flex gap-2">
+                   <input v-model="quickItinerary.time" type="time" class="ios-input !w-auto text-center !px-2 font-mono text-sm">
+                   <input v-model="quickItinerary.title" @keyup.enter="addQuickItinerary" class="ios-input flex-1 text-sm" placeholder="快速新增活動...">
+                   <button @click="addQuickItinerary" class="w-12 bg-[#007AFF] text-white rounded-xl shadow-md active:scale-95 transition flex items-center justify-center"><i class="ph ph-plus text-xl"></i></button>
+               </div>
             </div>
           </div>
 
           <div v-if="currentTab === '購物'">
-            <div class="flex items-center gap-2 mb-3 ml-2">
-                <i class="ph ph-bag text-lg text-gray-400"></i>
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">購物清單</h3>
-             </div>
+            <h3 class="ml-2 mb-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Wishlist</h3>
             <ul class="space-y-3">
-              <li v-for="(item, i) in shoppingList" :key="item.id" class="list-glass rounded-2xl p-3 flex justify-between items-start">
-                <div class="flex items-start gap-3 flex-1 min-w-0">
+              <li v-for="(item, i) in shoppingList" :key="item.id" class="ios-list-item !items-start">
+                <div class="flex items-start gap-3.5 flex-1 min-w-0">
                   <div class="mt-1 cursor-pointer" @click="item.isDone = !item.isDone">
-                      <i class="ph text-2xl transition-all" :class="item.isDone ? 'ph-check-circle-fill text-emerald-500' : 'ph-circle text-gray-300 hover:text-gray-400'"></i>
+                      <i class="ph text-2xl transition-all" :class="item.isDone ? 'ph-check-circle-fill text-green-500' : 'ph-circle text-gray-300 hover:text-gray-400'"></i>
                   </div>
                   <div class="flex-1 min-w-0 pt-0.5">
-                    <div class="font-bold text-[15px] truncate" :class="{'task-done': item.isDone, 'text-gray-800': !item.isDone}">{{ item.name }}</div>
-                     <div v-if="item.imageURL" class="mt-2.5">
+                    <div class="font-bold text-[16px] text-gray-900 truncate" :class="{'task-done': item.isDone}">{{ item.name }}</div>
+                     <div v-if="item.imageURL" class="mt-3">
                          <a v-if="isInstagramLink(item.imageURL)" :href="item.imageURL" target="_blank" 
-                           class="text-[10px] font-bold text-pink-600 bg-pink-50 border border-pink-100 px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1.5 hover:bg-pink-100 transition">
-                           <i class="ph ph-instagram-logo text-sm"></i> 查看貼文
-                         </a>
-                        <div v-else class="relative group/img cursor-pointer w-20 h-20 overflow-hidden rounded-xl border border-gray-200 shadow-sm" @click="openImageViewer(item.imageURL)">
-                             <img :src="item.imageURL" class="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110" alt="Thumbnail">
-                              <div class="absolute inset-0 bg-black/0 group-hover/img:bg-black/10 transition-colors"></div>
+                           class="text-xs font-semibold text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 hover:bg-gray-200 transition">
+                           <i class="ph ph-instagram-logo text-lg"></i> Post
+                      </a>
+                        <div v-else class="relative group/img cursor-pointer w-20 h-20 overflow-hidden rounded-lg border border-gray-200 shadow-sm" @click="openImageViewer(item.imageURL)">
+                             <img :src="item.imageURL" class="w-full h-full object-cover" alt="Thumbnail">
                         </div>
                     </div>
                   </div>
                 </div>
-                <div class="flex items-center gap-1 pl-2 flex-shrink-0">
-                    <button @click.stop="openShoppingModal(item)" class="text-gray-400 hover:text-sky-600 p-1.5"><i class="ph ph-pencil-simple text-base"></i></button>
-                    <button class="text-red-400 hover:text-red-500 p-1.5" @click="removeShoppingItem(item.id)"><i class="ph ph-trash text-base"></i></button>
+                <div class="flex items-center gap-1 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
+                    <button @click.stop="openShoppingModal(item)" class="text-gray-500 p-2"><i class="ph ph-pencil-simple text-lg"></i></button>
+                    <button class="text-gray-500 hover:text-red-500 p-2" @click="removeShoppingItem(item.id)"><i class="ph ph-trash text-lg"></i></button>
                 </div>
-               </li>
-              <li v-if="shoppingList.length === 0" class="p-8 text-sm text-gray-400 text-center border-2 border-dashed border-gray-200 rounded-3xl">清單是空的，快去買買買！</li>
+              </li>
             </ul>
+            <div v-if="shoppingList.length === 0" class="py-12 text-center">
+                 <i class="ph ph-bag text-4xl text-gray-300 mb-2"></i>
+                 <p class="text-sm text-gray-400">購物清單是空的</p>
+            </div>
           </div>
 
           <div v-if="currentTab === '記帳'">
               <div class="expense-card mb-6">
-               
                  <div class="absolute top-4 right-4 z-10">
-                    <button @click="openExpenseModal(null)" class="bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2 rounded-full backdrop-blur-md transition shadow-inner">
+                    <button @click="openExpenseModal(null)" class="bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2 rounded-full backdrop-blur-md transition">
                         <i class="ph ph-plus text-xl font-bold"></i>
                     </button>
                 </div>
 
-                <div class="text-center mb-8 mt-2 relative z-10">
-                    <div class="text-blue-200 text-[10px] font-bold tracking-[0.2em] uppercase mb-2">總支出 (HKD)</div>
-                    <div class="text-5xl font-light tracking-tight mb-1 text-white drop-shadow-lg flex justify-center items-start">
-                       <span class="text-2xl mt-1 opacity-60 mr-1">$</span>{{ formatNumber(totalExpense.hkd, 0) }}
+                <div class="relative z-10">
+                    <div class="text-white/60 text-[11px] font-bold tracking-widest uppercase mb-1">Total Spending (HKD)</div>
+                    <div class="text-5xl font-light tracking-tight mb-2 text-white flex items-baseline">
+                        <span class="text-2xl opacity-60 mr-1">$</span>{{ formatNumber(totalExpense.hkd, 0) }}
                     </div>
-                    <div class="text-white/50 text-sm font-medium tracking-wide">≈ TWD {{ formatNumber(totalExpense.twd, 0) }}</div>
+                    <div class="text-white/40 text-sm font-medium">≈ TWD {{ formatNumber(totalExpense.twd, 0) }}</div>
                 </div>
                 
-                  <div class="grid grid-cols-2 gap-0 border-t border-white/10 pt-4 relative z-10">
-                    <div class="text-center border-r border-white/10 pr-2">
-                        <div class="text-blue-300/80 text-[9px] uppercase tracking-wider mb-1"><i class="ph ph-credit-card mr-1"></i>信用卡</div>
-                        <div class="text-xl font-bold text-white/90">${{ formatNumber(totalExpense.creditHkd, 0) }}</div>
+                  <div class="grid grid-cols-2 gap-4 mt-6 relative z-10">
+                    <div class="bg-white/5 rounded-xl p-3 backdrop-blur-sm">
+                        <div class="text-white/50 text-[10px] uppercase tracking-wider mb-1"><i class="ph ph-credit-card mr-1"></i>Credit</div>
+                       <div class="text-lg font-bold text-white">${{ formatNumber(totalExpense.creditHkd, 0) }}</div>
                     </div>
-                    <div class="text-center pl-2">
-                        <div class="text-blue-300/80 text-[9px] uppercase tracking-wider mb-1"><i class="ph ph-coins mr-1"></i>現金</div>
-                        <div class="text-xl font-bold text-white/90">${{ formatNumber(totalExpense.cashHkd, 0) }}</div>
+                    <div class="bg-white/5 rounded-xl p-3 backdrop-blur-sm">
+                        <div class="text-white/50 text-[10px] uppercase tracking-wider mb-1"><i class="ph ph-coins mr-1"></i>Cash</div>
+                         <div class="text-lg font-bold text-white">${{ formatNumber(totalExpense.cashHkd, 0) }}</div>
                     </div>
                  </div>
              </div>
 
-            <div class="bg-gray-200/40 p-1.5 rounded-2xl flex mb-4 backdrop-blur-sm mx-1">
-                <button v-for="f in ['all', 'credit', 'cash']" :key="f"
+            <div class="bg-gray-200/50 p-1 rounded-xl flex mb-6 mx-1">
+                 <button v-for="f in ['all', 'credit', 'cash']" :key="f"
                 @click="expenseFilter = f"
-                    class="flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-300"
-                    :class="expenseFilter === f ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+                    class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all duration-200"
+                    :class="expenseFilter === f ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-700'">
                     {{ f === 'all' ? '全部' : (f === 'credit' ? '信用卡' : '現金') }}
                 </button>
             </div>
 
-            <div class="rounded-3xl bg-white/40 backdrop-blur-xl border border-white/40 shadow-sm p-2 min-h-[200px]">
-                 <ul class="space-y-1">
-                <li v-for="(e, i) in filteredExpenses" :key="e.id" class="p-3 rounded-2xl hover:bg-white/50 transition flex justify-between items-center group cursor-default">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" 
-                             :class="e.paymentMethod === 'credit_card' ? 'bg-indigo-100 text-indigo-500' : 'bg-emerald-100 text-emerald-500'">
+            <div class="space-y-1 pb-10">
+                <div v-for="(e, i) in filteredExpenses" :key="e.id" class="bg-white/60 p-4 rounded-2xl flex justify-between items-center border border-white/40 mb-2">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl bg-gray-100 text-gray-600">
                              <i class="ph" :class="e.paymentMethod === 'credit_card' ? 'ph-credit-card' : 'ph-coins'"></i>
                         </div>
-                    <div>
-                        <div class="font-bold text-gray-800 text-[15px]">{{ e.name }}</div>
-                        <div class="text-[11px] font-medium text-gray-400 mt-0.5">{{ e.category }} · {{ e.date }}</div>
-                    </div>
+                        <div>
+                            <div class="font-bold text-gray-900 text-[15px]">{{ e.name }}</div>
+                            <div class="text-[11px] font-medium text-gray-400 mt-0.5">{{ e.category }} · {{ e.date }}</div>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="text-right">
-                              <div class="font-bold text-gray-800 text-[15px]">{{ e.currency }} {{ formatNumber(e.amount, 0) }}</div>
+                           <div class="font-bold text-gray-900 text-[16px]">{{ e.currency }} <span class="text-base">{{ formatNumber(e.amount, 0) }}</span></div>
                         </div>
-                        <div class="flex gap-1">
-                           <button @click="openExpenseModal(e)" class="text-gray-400 hover:text-sky-600 p-1"><i class="ph ph-pencil-simple"></i></button>
-                           <button @click="removeExpense(e.id)" class="text-red-300 hover:text-red-500 p-1"><i class="ph ph-trash"></i></button>
+                        <div class="flex gap-1 opacity-20 hover:opacity-100 transition-opacity">
+                             <button @click="openExpenseModal(e)" class="p-1.5 text-blue-500"><i class="ph ph-pencil-simple"></i></button>
+                             <button @click="removeExpense(e.id)" class="p-1.5 text-red-500"><i class="ph ph-trash"></i></button>
                         </div>
                     </div>
-               </li>
-                <li v-if="filteredExpenses.length === 0" class="p-8 text-sm text-gray-400 text-center">
-                    暫無相關記錄
-                </li>
-                </ul>
+                </div>
+                <div v-if="filteredExpenses.length === 0" class="py-10 text-center text-gray-400 text-sm">無紀錄</div>
              </div>
           </div>
 
           <div v-if="currentTab === '資訊'">
-            <div class="flex items-center gap-2 mb-3 ml-2">
-                <i class="ph ph-info text-lg text-gray-400"></i>
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">實用資訊</h3>
-            </div>
-             <ul class="space-y-3">
-              <li v-for="(it, idx) in infoList" :key="it.id" class="list-glass rounded-2xl p-4 flex justify-between items-start">
+            <h3 class="ml-2 mb-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Notes</h3>
+            <ul class="space-y-3">
+              <li v-for="(it, idx) in infoList" :key="it.id" class="ios-list-item !items-start !p-5">
                 <div class="flex items-start gap-3 flex-1 min-w-0">
                   <div class="mt-1 cursor-pointer" @click="it.isDone = !it.isDone">
-                    <i class="ph text-2xl" :class="it.isDone ? 'ph-check-circle-fill text-emerald-500' : 'ph-info text-sky-500'"></i>
+                    <i class="ph text-2xl" :class="it.isDone ? 'ph-check-circle-fill text-green-500' : 'ph-info text-[#007AFF]'"></i>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="font-bold text-[15px] text-gray-800 truncate">{{ it.title }}</div>
-                    <div class="text-sm text-gray-500 mt-1 whitespace-pre-wrap leading-relaxed">{{ it.note }}</div>
-                     <div v-if="it.imageURL" class="mt-3">
-                        <div class="relative group/img cursor-pointer w-full h-32 overflow-hidden rounded-xl border border-gray-200 shadow-sm" @click="openImageViewer(it.imageURL)">
+                    <div class="font-bold text-[17px] text-gray-900 truncate">{{ it.title }}</div>
+                    <div class="text-sm text-gray-500 mt-2 whitespace-pre-wrap leading-relaxed">{{ it.note }}</div>
+                      <div v-if="it.imageURL" class="mt-4">
+                        <div class="relative group/img cursor-pointer w-full h-40 overflow-hidden rounded-xl border border-gray-200 shadow-sm" @click="openImageViewer(it.imageURL)">
                              <img :src="it.imageURL" class="w-full h-full object-cover" alt="Thumbnail">
                          </div>
                     </div>
                    </div>
                 </div>
-                 <div class="flex items-center gap-1 pl-2 flex-shrink-0">
-                     <button @click.stop="openInfoModal(it)" class="text-gray-400 hover:text-sky-600 p-1.5"><i class="ph ph-pencil-simple text-base"></i></button>
-                    <button class="text-red-400 hover:text-red-500 p-1.5" @click="removeInfo(it.id)"><i class="ph ph-trash text-base"></i></button>
+                 <div class="flex items-center gap-1 pl-2 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
+                    <button @click.stop="openInfoModal(it)" class="text-gray-500 p-2"><i class="ph ph-pencil-simple text-lg"></i></button>
+                    <button class="text-gray-500 hover:text-red-500 p-2" @click="removeInfo(it.id)"><i class="ph ph-trash text-lg"></i></button>
                  </div>
               </li>
-              <li v-if="infoList.length === 0" class="p-8 text-sm text-gray-400 text-center border-2 border-dashed border-gray-200 rounded-3xl">請新增重要的資訊備忘</li>
              </ul>
+             <div v-if="infoList.length === 0" class="py-12 text-center text-gray-400 text-sm">
+                請新增重要的資訊備忘
+             </div>
           </div>
       </div>
 
-      <div class="h-28 flex items-end justify-center pb-4">
-         <div class="text-[10px] font-mono text-gray-400/50">Designed for Taipei 2025</div>
+      <div class="h-32 flex items-end justify-center pb-4">
+         <div class="text-[10px] font-mono text-gray-400/30">Taipei Trip 2025 System</div>
       </div>
     </main>
 
-    <nav class="fixed bottom-6 left-0 right-0 z-30 px-2 pointer-events-none">
+    <nav class="fixed bottom-6 left-0 right-0 z-30 px-4 pointer-events-none">
       <div class="iphone-dock w-full max-w-[360px] mx-auto pointer-events-auto transition-transform hover:scale-[1.01] duration-300">
-        <button @click="currentTab='行程'" class="group flex flex-col items-center justify-center flex-1 transition-all" 
-                :class="currentTab==='行程' ? 'text-sky-600' : 'text-gray-400 hover:text-gray-600'">
-            <i class="ph ph-map-pin text-3xl mb-1 transition-transform group-active:scale-90" :class="currentTab==='行程' ? 'fill-current' : ''"></i>
-            <span class="text-[10px] font-bold tracking-wide">行程</span>
+        <button @click="currentTab='行程'" 
+                class="group flex flex-col items-center justify-center flex-1 transition-all text-gray-400 hover:text-gray-500" 
+                :class="{'!text-[#007AFF]': currentTab==='行程'}">
+            <i class="ph ph-map-pin text-[28px] mb-1 transition-transform group-active:scale-90" :class="currentTab==='行程' ? 'fill-current' : ''"></i>
+            <span class="text-[10px] font-semibold tracking-wide">行程</span>
         </button>
         
-        <button @click="currentTab='記帳'" class="group flex flex-col items-center justify-center flex-1 transition-all"
-                :class="currentTab==='記帳' ? 'text-sky-600' : 'text-gray-400 hover:text-gray-600'">
-            <i class="ph ph-wallet text-3xl mb-1 transition-transform group-active:scale-90" :class="currentTab==='記帳' ? 'fill-current' : ''"></i>
-            <span class="text-[10px] font-bold tracking-wide">記帳</span>
+        <button @click="currentTab='記帳'" class="group flex flex-col items-center justify-center flex-1 transition-all text-gray-400 hover:text-gray-500"
+                :class="{'!text-[#007AFF]': currentTab==='記帳'}">
+            <i class="ph ph-wallet text-[28px] mb-1 transition-transform group-active:scale-90" :class="currentTab==='記帳' ? 'fill-current' : ''"></i>
+            <span class="text-[10px] font-semibold tracking-wide">記帳</span>
         </button>
         
-        <button @click="currentTab='購物'" class="group flex flex-col items-center justify-center flex-1 transition-all"
-                :class="currentTab==='購物' ? 'text-sky-600' : 'text-gray-400 hover:text-gray-600'">
-            <i class="ph ph-shopping-bag text-3xl mb-1 transition-transform group-active:scale-90" :class="currentTab==='購物' ? 'fill-current' : ''"></i>
-            <span class="text-[10px] font-bold tracking-wide">購物</span>
+        <button @click="currentTab='購物'" class="group flex flex-col items-center justify-center flex-1 transition-all text-gray-400 hover:text-gray-500"
+                :class="{'!text-[#007AFF]': currentTab==='購物'}">
+            <i class="ph ph-shopping-bag text-[28px] mb-1 transition-transform group-active:scale-90" :class="currentTab==='購物' ? 'fill-current' : ''"></i>
+            <span class="text-[10px] font-semibold tracking-wide">購物</span>
         </button>
         
-        <button @click="currentTab='資訊'" class="group flex flex-col items-center justify-center flex-1 transition-all"
-                :class="currentTab==='資訊' ? 'text-sky-600' : 'text-gray-400 hover:text-gray-600'">
-            <i class="ph ph-info text-3xl mb-1 transition-transform group-active:scale-90" :class="currentTab==='資訊' ? 'fill-current' : ''"></i>
-            <span class="text-[10px] font-bold tracking-wide">資訊</span>
+        <button @click="currentTab='資訊'" class="group flex flex-col items-center justify-center flex-1 transition-all text-gray-400 hover:text-gray-500"
+                :class="{'!text-[#007AFF]': currentTab==='資訊'}">
+            <i class="ph ph-info text-[28px] mb-1 transition-transform group-active:scale-90" :class="currentTab==='資訊' ? 'fill-current' : ''"></i>
+            <span class="text-[10px] font-semibold tracking-wide">資訊</span>
         </button>
       </div>
     </nav>
     
     <transition name="fade">
-        <div v-if="imageViewer.open" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4" @click="imageViewer.open = false">
-            <button class="absolute top-6 right-6 text-white/50 hover:text-white p-2 transition">
-                <i class="ph ph-x-circle text-4xl"></i>
+        <div v-if="imageViewer.open" class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4" @click="imageViewer.open = false">
+            <button class="absolute top-8 right-8 text-white/50 hover:text-white p-2 transition">
+                 <i class="ph ph-x-circle text-4xl"></i>
             </button>
-            <img :src="imageViewer.url" class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10" @click.stop>
+            <img :src="imageViewer.url" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" @click.stop>
         </div>
     </transition>
 
     <transition name="fade">
-      <div v-if="preNoteModalOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-6" @click.self="closePreNoteModal">
-        <div class="bg-white/90 backdrop-blur-xl rounded-[28px] w-full max-w-sm p-6 shadow-2xl border border-white/50 transform transition-all scale-100">
-          <h3 class="text-xl font-bold mb-5 text-gray-800">{{ editingPreNote.id ? '編輯項目' : '新增項目' }}</h3>
-          <div class="space-y-4">
-            <input v-model="editingPreNote.name" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-lg focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="項目名稱">
-            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <input type="checkbox" id="pre-note-done" v-model="editingPreNote.isDone" class="w-5 h-5 text-sky-600 rounded border-gray-300 focus:ring-sky-500">
-              <label for="pre-note-done" class="text-gray-700 font-medium select-none">標記為已完成</label>
+      <div v-if="preNoteModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="closePreNoteModal">
+        <div class="ios-modal-container">
+          <div class="ios-modal-header">{{ editingPreNote.id ? '編輯項目' : '新增項目' }}</div>
+          <div class="ios-modal-body space-y-4">
+            <input v-model="editingPreNote.name" class="ios-input" placeholder="項目名稱">
+            <div class="flex items-center gap-3 p-3 bg-gray-100 rounded-xl">
+              <input type="checkbox" id="pre-note-done" v-model="editingPreNote.isDone" class="w-6 h-6 text-[#007AFF] rounded focus:ring-[#007AFF]">
+              <label for="pre-note-done" class="text-gray-900 font-medium select-none flex-1">標記為已完成</label>
             </div>
           </div>
-          <div class="mt-8 flex gap-3">
-            <button @click="closePreNoteModal" class="flex-1 py-3 text-gray-600 font-bold rounded-xl bg-gray-100 hover:bg-gray-200 transition">取消</button>
-            <button @click="savePreNoteEdit" class="flex-1 py-3 bg-black text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transition">儲存</button>
+          <div class="ios-modal-footer">
+            <button @click="closePreNoteModal" class="btn-ios-cancel">取消</button>
+            <button @click="savePreNoteEdit" class="btn-ios-primary">儲存</button>
           </div>
         </div>
       </div>
     </transition>
 
     <transition name="fade">
-         <div v-if="flightModalOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-6" @click.self="closeFlightModal">
-             <div class="bg-white/90 backdrop-blur-xl rounded-[28px] w-full max-w-sm p-6 shadow-2xl border border-white/50 h-[80vh] overflow-y-auto no-scrollbar">
-                <h3 class="text-xl font-bold mb-5 text-gray-800">{{ newFlight.id ? '編輯航班' : '新增航班' }}</h3>
-                <div class="space-y-3">
-                    <div class="p-1 bg-gray-100 rounded-xl flex mb-2">
-                        <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all" :class="newFlight.type==='outbound' ? 'bg-white shadow text-black' : 'text-gray-400'" @click="newFlight.type='outbound'">去程</button>
-                         <button class="flex-1 py-2 rounded-lg text-xs font-bold transition-all" :class="newFlight.type==='return' ? 'bg-white shadow text-black' : 'text-gray-400'" @click="newFlight.type='return'">回程</button>
+         <div v-if="flightModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="closeFlightModal">
+             <div class="ios-modal-container">
+                <div class="ios-modal-header">{{ newFlight.id ? '編輯航班' : '新增航班' }}</div>
+                <div class="ios-modal-body space-y-4">
+                    <div class="p-1 bg-gray-200/50 rounded-xl flex">
+                        <button class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all" :class="newFlight.type==='outbound' ? 'bg-white shadow text-black' : 'text-gray-400'" @click="newFlight.type='outbound'">去程</button>
+                        <button class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all" :class="newFlight.type==='return' ? 'bg-white shadow text-black' : 'text-gray-400'" @click="newFlight.type='return'">回程</button>
                     </div>
-                    <input v-model="newFlight.date" type="date" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base">
-                    <input v-model="newFlight.code" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base" placeholder="航班代碼 (如: CX400)">
-                    <div class="flex gap-3">
-                        <input v-model="newFlight.fromCode" class="flex-1 min-w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-base text-center uppercase" placeholder="HKG">
-                        <input v-model="newFlight.toCode" class="flex-1 min-w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-base text-center uppercase" placeholder="TPE">
-                     </div>
-                    <div class="flex gap-3">
-                        <input v-model="newFlight.depTime" type="time" class="flex-1 p-3 rounded-xl border border-gray-200 bg-white/50 text-base">
-                        <input v-model="newFlight.arrTime" type="time" class="flex-1 p-3 rounded-xl border border-gray-200 bg-white/50 text-base">
+                    <div>
+                        <label class="text-xs text-gray-400 ml-1 font-bold">日期</label>
+                        <input v-model="newFlight.date" type="date" class="ios-input">
                     </div>
-                     <textarea v-model="newFlight.note" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base" rows="2" placeholder="備註 (航廈、座位等)"></textarea>
+                    <div>
+                        <label class="text-xs text-gray-400 ml-1 font-bold">航班代碼</label>
+                        <input v-model="newFlight.code" class="ios-input" placeholder="如: CX400">
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-400 ml-1 font-bold">出發地</label>
+                            <input v-model="newFlight.fromCode" class="ios-input text-center uppercase" placeholder="HKG">
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-400 ml-1 font-bold">目的地</label>
+                            <input v-model="newFlight.toCode" class="ios-input text-center uppercase" placeholder="TPE">
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-400 ml-1 font-bold">起飛</label>
+                            <input v-model="newFlight.depTime" type="time" class="ios-input">
+                        </div>
+                        <div class="flex-1">
+                             <label class="text-xs text-gray-400 ml-1 font-bold">抵達</label>
+                             <input v-model="newFlight.arrTime" type="time" class="ios-input">
+                        </div>
+                    </div>
+                     <textarea v-model="newFlight.note" class="ios-input" rows="2" placeholder="備註 (航廈、座位等)"></textarea>
                 </div>
-                <div class="mt-6 flex gap-3">
-                     <button @click="closeFlightModal" class="flex-1 py-3 text-gray-600 font-bold rounded-xl bg-gray-100 hover:bg-gray-200 transition">取消</button>
-                    <button @click="saveFlight" class="flex-1 py-3 bg-sky-500 text-white font-bold rounded-xl shadow-lg hover:bg-sky-600 transition">儲存</button>
+                <div class="ios-modal-footer">
+                     <button @click="closeFlightModal" class="btn-ios-cancel">取消</button>
+                    <button @click="saveFlight" class="btn-ios-primary">儲存</button>
                 </div>
             </div>
         </div>
     </transition>
 
     <transition name="fade">
-        <div v-if="itineraryModalOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-6" @click.self="closeItineraryModal">
-            <div class="bg-white/90 backdrop-blur-xl rounded-[28px] w-full max-w-sm p-6 shadow-2xl border border-white/50">
-                 <h3 class="text-xl font-bold mb-5 text-gray-800">{{ newItineraryItem.id ? '編輯行程' : '新增行程' }}</h3>
-                <div class="space-y-4">
-                    <div class="flex gap-3 mb-1">
-                        <select v-model="newItineraryItem.dayIndex" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
+        <div v-if="itineraryModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="closeItineraryModal">
+            <div class="ios-modal-container">
+                 <div class="ios-modal-header">{{ newItineraryItem.id ? '編輯行程' : '新增行程' }}</div>
+                <div class="ios-modal-body space-y-4">
+                    <div class="flex gap-3">
+                        <select v-model="newItineraryItem.dayIndex" class="ios-input appearance-none">
                              <option v-for="(d, i) in days" :key="i" :value="i">
                                  Day {{ i+1 }} - {{ d.date }}
                              </option>
-                        </select>
+                         </select>
                     </div>
-                    <div class="flex gap-2">
-                        <input v-model="newItineraryItem.time" type="time" class="flex-[2] w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-base text-center font-bold">
-                         <input v-model="newItineraryItem.title" class="flex-[3] w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-medium" placeholder="標題">
+                    <div class="flex gap-3">
+                        <input v-model="newItineraryItem.time" type="time" class="ios-input !w-auto text-center font-bold">
+                        <input v-model="newItineraryItem.title" class="ios-input flex-1 font-semibold" placeholder="標題">
                     </div>
                     <div class="relative">
-                        <i class="ph ph-map-pin absolute left-3 top-3.5 text-gray-400"></i>
-                         <input v-model="newItineraryItem.address" class="w-full pl-10 p-3 rounded-xl border border-gray-200 bg-white/50 text-base" placeholder="Google 地圖地址">
+                        <i class="ph ph-map-pin absolute left-4 top-4 text-gray-400"></i>
+                        <input v-model="newItineraryItem.address" class="ios-input pl-10 text-sm" placeholder="Google 地圖地址">
                     </div>
-                    <textarea v-model="newItineraryItem.note" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base" rows="3" placeholder="備註..."></textarea>
+                    <textarea v-model="newItineraryItem.note" class="ios-input" rows="3" placeholder="備註..."></textarea>
                 </div>
-                 <div class="mt-6 flex gap-3">
-                    <button @click="closeItineraryModal" class="flex-1 py-3 text-gray-600 font-bold rounded-xl bg-gray-100 hover:bg-gray-200 transition">取消</button>
-                    <button @click="saveItineraryItem" class="flex-1 py-3 bg-sky-500 text-white font-bold rounded-xl shadow-lg hover:bg-sky-600 transition">儲存</button>
+                 <div class="ios-modal-footer">
+                    <button @click="closeItineraryModal" class="btn-ios-cancel">取消</button>
+                    <button @click="saveItineraryItem" class="btn-ios-primary">儲存</button>
                 </div>
              </div>
         </div>
     </transition>
 
     <transition name="fade">
-        <div v-if="shoppingModalOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-6" @click.self="closeShoppingModal">
-            <div class="bg-white/90 backdrop-blur-xl rounded-[28px] w-full max-w-sm p-6 shadow-2xl border border-white/50">
-                <h3 class="text-xl font-bold mb-5 text-gray-800">{{ newShoppingItem.id ? '編輯項目' : '新增項目' }}</h3>
-                <div class="space-y-4 text-sm">
-                    <input v-model="newShoppingItem.name" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-medium" placeholder="想買什麼？">
+        <div v-if="shoppingModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="closeShoppingModal">
+            <div class="ios-modal-container">
+                <div class="ios-modal-header">{{ newShoppingItem.id ? '編輯項目' : '新增項目' }}</div>
+                <div class="ios-modal-body space-y-5">
+                    <input v-model="newShoppingItem.name" class="ios-input font-medium" placeholder="想買什麼？">
                     
-                    <div class="border-t border-gray-200 pt-4">
+                    <div class="border-t border-gray-100 pt-4">
                         <label class="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">參考圖片</label>
-                        <input v-model="newShoppingItem.imageURL" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-xs mb-3 font-mono text-gray-500" placeholder="https://...">
                         
-                         <label class="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-sky-300 transition group">
+                        <label class="flex flex-col items-center justify-center w-full p-6 border border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-gray-50 transition">
                             <div class="text-center" v-if="!tempUploadPreview.shopping && !newShoppingItem.imageURL">
-                                <i class="ph ph-image text-2xl text-gray-300 group-hover:text-sky-500 mb-1"></i>
-                                 <div class="text-gray-400 text-xs font-medium">上傳圖片</div>
+                                <i class="ph ph-image text-3xl text-gray-300 mb-2"></i>
+                                <div class="text-[#007AFF] text-sm font-medium">上傳圖片</div>
                             </div>
-                            <div v-else class="text-center text-sky-500 font-bold text-xs">
-                                {{ uploadStatus.shopping || '圖片已選取' }}
+                            <div v-else class="text-center text-[#007AFF] font-bold text-sm">
+                                {{ uploadStatus.shopping || '圖片已選取 (點擊更換)' }}
                             </div>
                             <input type="file" accept="image/*" class="hidden" @change="(e) => handleFileUpload(e, 'shopping')">
                         </label>
             
+                        <input v-model="newShoppingItem.imageURL" class="w-full mt-3 p-2 text-xs text-gray-400 bg-transparent text-center border-none focus:outline-none" placeholder="或是貼上圖片網址">
                          
-                         <div v-if="tempUploadPreview.shopping" class="mt-3 flex justify-center">
-                             <img :src="tempUploadPreview.shopping" class="h-20 w-20 object-cover rounded-xl shadow-sm border border-white">
+                         <div v-if="tempUploadPreview.shopping || newShoppingItem.imageURL" class="mt-4 flex justify-center">
+                             <img :src="tempUploadPreview.shopping || newShoppingItem.imageURL" class="h-24 w-24 object-cover rounded-2xl shadow-sm border border-gray-100">
                          </div>
                     </div>
 
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mt-2">
-                        <input type="checkbox" id="shopping-done" v-model="newShoppingItem.isDone" class="w-5 h-5 text-sky-600 rounded border-gray-300">
-                        <label for="shopping-done" class="text-gray-700 font-medium select-none">已購買</label>
+                    <div class="flex items-center gap-3 p-3 bg-gray-100 rounded-xl">
+                        <input type="checkbox" id="shopping-done" v-model="newShoppingItem.isDone" class="w-5 h-5 text-[#007AFF] rounded focus:ring-[#007AFF]">
+                        <label for="shopping-done" class="text-gray-900 font-medium select-none flex-1">已購買</label>
                     </div>
                 </div>
-                <div class="mt-6 flex gap-3">
-                    <button @click="closeShoppingModal" class="flex-1 py-3 text-gray-600 font-bold rounded-xl bg-gray-100 hover:bg-gray-200 transition">取消</button>
-                    <button @click="saveShoppingItem" class="flex-1 py-3 bg-black text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transition disabled:opacity-50" :disabled="isUploading">
+                <div class="ios-modal-footer">
+                    <button @click="closeShoppingModal" class="btn-ios-cancel">取消</button>
+                    <button @click="saveShoppingItem" class="btn-ios-primary" :disabled="isUploading">
                         {{ isUploading ? '上傳中...' : '儲存' }}
                     </button>
                 </div>
@@ -690,53 +795,52 @@
     </transition>
 
     <transition name="fade">
-        <div v-if="expenseModalOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-6" @click.self="closeExpenseModal">
-            <div class="bg-white/90 backdrop-blur-xl rounded-[28px] w-full max-w-sm p-6 shadow-2xl border border-white/50">
-                <h3 class="text-xl font-bold mb-5 text-gray-800">{{ newExpense.id ? '編輯消費' : '新增消費' }}</h3>
-                <div class="space-y-4">
-                    <input v-model="newExpense.name" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-lg font-medium" placeholder="描述 (如: 晚餐)">
+        <div v-if="expenseModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="closeExpenseModal">
+            <div class="ios-modal-container">
+                <div class="ios-modal-header">{{ newExpense.id ? '編輯消費' : '新增消費' }}</div>
+                <div class="ios-modal-body space-y-4">
+                    <input v-model="newExpense.name" class="ios-input text-lg font-medium" placeholder="描述 (如: 晚餐)">
                     
-                    <div class="flex gap-2 w-full">
-                         <div class="relative w-24 flex-shrink-0">
-                             <select v-model="newExpense.currency" class="w-full appearance-none p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-bold text-center">
+                    <div class="flex gap-3 w-full">
+                         <div class="relative w-28 flex-shrink-0">
+                             <select v-model="newExpense.currency" class="ios-input appearance-none font-bold text-center">
                                 <option value="TWD">TWD</option>
-                                 <option value="HKD">HKD</option>
+                                <option value="HKD">HKD</option>
                                 <option value="JPY">JPY</option>
                                 <option value="USD">USD</option>
                              </select>
-                            <i class="ph ph-caret-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
+                             <i class="ph ph-caret-down absolute right-3 top-[18px] text-gray-400 text-xs pointer-events-none"></i>
                         </div>
-                        <input v-model.number="newExpense.amount" type="number" class="flex-1 min-w-0 p-3 rounded-xl border border-gray-200 bg-white/50 text-lg font-bold" placeholder="0.00">
+                        <input v-model.number="newExpense.amount" type="number" class="ios-input flex-1 text-lg font-bold" placeholder="0.00">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div class="relative">
-                            <select v-model="newExpense.category" class="w-full appearance-none p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-medium text-gray-600">
+                             <select v-model="newExpense.category" class="ios-input appearance-none text-base text-gray-700">
                                 <option value="餐飲">🍔 餐飲</option>
                                 <option value="交通">🚕 交通</option>
                                 <option value="購物">🛍 購物</option>
                                 <option value="其他">🧩 其他</option>
                             </select>
-                            <i class="ph ph-caret-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
+                            <i class="ph ph-caret-down absolute right-3 top-[18px] text-gray-400 text-xs pointer-events-none"></i>
                         </div>
                         <div class="relative">
-                            
-                            <select v-model="newExpense.paymentMethod" class="w-full appearance-none p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-medium text-gray-600">
+                            <select v-model="newExpense.paymentMethod" class="ios-input appearance-none text-base text-gray-700">
                                 <option value="cash">💵 現金</option>
                                 <option value="credit_card">💳 信用卡</option>
                              </select>
-                             <i class="ph ph-caret-down absolute right-3 top-4 text-gray-400 text-xs pointer-events-none"></i>
-                        </div>
+                             <i class="ph ph-caret-down absolute right-3 top-[18px] text-gray-400 text-xs pointer-events-none"></i>
+                         </div>
                     </div>
 
                     <div class="mt-2">
                         <label class="block text-xs font-bold text-gray-400 mb-1 ml-1 uppercase">日期</label>
-                        <input v-model="newExpense.date" type="date" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base text-gray-600">
+                        <input v-model="newExpense.date" type="date" class="ios-input text-gray-600">
                     </div>
                 </div>
-                <div class="mt-8 flex gap-3">
-                   <button @click="closeExpenseModal" class="flex-1 py-3 text-gray-600 font-bold rounded-xl bg-gray-100 hover:bg-gray-200 transition">取消</button>
-                    <button @click="saveExpense" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition">
+                <div class="ios-modal-footer">
+                   <button @click="closeExpenseModal" class="btn-ios-cancel">取消</button>
+                    <button @click="saveExpense" class="btn-ios-primary">
                         {{ newExpense.id ? '儲存' : '加入' }}
                     </button>
                 </div>
@@ -745,43 +849,42 @@
     </transition>
 
     <transition name="fade">
-        <div v-if="infoModalOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-6" @click.self="closeInfoModal">
-            <div class="bg-white/90 backdrop-blur-xl rounded-[28px] w-full max-w-sm p-6 shadow-2xl border border-white/50">
-                <h3 class="text-xl font-bold mb-5 text-gray-800">{{ newInfoItem.id ? '編輯資訊' : '新增資訊' }}</h3>
-                <div class="space-y-4">
-                    <input v-model="newInfoItem.title" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base font-medium" placeholder="標題">
-                    <textarea v-model="newInfoItem.note" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 text-base" rows="4" placeholder="詳細內容..."></textarea>
+        <div v-if="infoModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="closeInfoModal">
+            <div class="ios-modal-container">
+                <div class="ios-modal-header">{{ newInfoItem.id ? '編輯資訊' : '新增資訊' }}</div>
+                <div class="ios-modal-body space-y-4">
+                    <input v-model="newInfoItem.title" class="ios-input font-medium" placeholder="標題">
+                    <textarea v-model="newInfoItem.note" class="ios-input" rows="4" placeholder="詳細內容..."></textarea>
                     
-                    <div class="border-t border-gray-200 pt-4">
+                    <div class="border-t border-gray-100 pt-4">
                         <label class="block text-xs font-bold text-gray-400 mb-2 uppercase">附件</label>
-                         <label class="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-sky-300 transition group">
+                         <label class="flex flex-col items-center justify-center w-full p-4 border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition">
                              <div class="text-center" v-if="!tempUploadPreview.info && !newInfoItem.imageURL">
-                                <i class="ph ph-paperclip text-2xl text-gray-300 group-hover:text-sky-500 mb-1"></i>
-                                <div class="text-gray-400 text-xs font-medium">上傳 / 貼上網址</div>
+                                <i class="ph ph-paperclip text-2xl text-gray-300 mb-1"></i>
+                                <div class="text-[#007AFF] text-xs font-medium">上傳 / 貼上網址</div>
                             </div>
-                            <div v-else class="text-center text-sky-500 font-bold text-xs">
+                            <div v-else class="text-center text-[#007AFF] font-bold text-xs">
                                 {{ uploadStatus.info || '檔案已就緒' }}
                             </div>
                             <input type="file" accept="image/*" class="hidden" @change="(e) => handleFileUpload(e, 'info')">
                         </label>
             
-                        <input v-model="newInfoItem.imageURL" class="w-full mt-2 p-2 rounded-lg border-none bg-transparent text-xs text-gray-400 text-center" placeholder="或在此貼上網址">
+                        <input v-model="newInfoItem.imageURL" class="w-full mt-2 p-2 bg-transparent text-xs text-gray-400 text-center border-none focus:outline-none" placeholder="或在此貼上網址">
 
-                        <div v-if="tempUploadPreview.info" class="mt-3 flex justify-center">
-                             <img :src="tempUploadPreview.info" class="h-20 w-20 object-cover rounded-xl shadow-sm border border-white">
+                        <div v-if="tempUploadPreview.info || newInfoItem.imageURL" class="mt-3 flex justify-center">
+                             <img :src="tempUploadPreview.info || newInfoItem.imageURL" class="h-20 w-20 object-cover rounded-xl shadow-sm border border-gray-200">
                          </div>
                     </div>
                 </div>
-                <div class="mt-6 flex gap-3">
-                   <button @click="closeInfoModal" class="flex-1 py-3 text-gray-600 font-bold rounded-xl bg-gray-100 hover:bg-gray-200 transition">取消</button>
-                    <button @click="saveInfoItem" class="flex-1 py-3 bg-sky-500 text-white font-bold rounded-xl shadow-lg hover:bg-sky-600 transition" :disabled="isUploading">
+                <div class="ios-modal-footer">
+                   <button @click="closeInfoModal" class="btn-ios-cancel">取消</button>
+                    <button @click="saveInfoItem" class="btn-ios-primary" :disabled="isUploading">
                          {{ isUploading ? '...' : '儲存' }}
                     </button>
                 </div>
             </div>
         </div>
     </transition>
-
 
   </div> 
 
@@ -807,7 +910,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     createApp({
       setup() {
-        const appVersion = ref('v251214-3.05'); // Point 1: Update Version
+        const appVersion = ref('v251214-3.08'); // Point 1: Update Version
         const currentTab = ref('行程');
         const selectedDay = ref(0); 
 
@@ -836,10 +939,10 @@
         });
         const selectedMapLocation = ref(null);
         function showLocationOnMap(item) {
-          selectedMapLocation.value = (item.address && item.address.trim() !== '') ? { title: item.title, address: item.address, id: item.id } : null;
+          selectedMapLocation.value = (item.address && item.address.trim() !== '') ?
+             { title: item.title, address: item.address, id: item.id } : null;
         }
         
-        // Point 3: Fix Map Links
         function generateMapLink(address, type) {
           if (!address) return '#';
           const q = encodeURIComponent(address);
@@ -893,7 +996,8 @@
         function openImageViewer(url) {
             if (!url) return;
             if (isInstagramLink(url)) window.open(url, '_blank');
-            else { imageViewer.url = url; imageViewer.open = true; }
+            else { imageViewer.url = url; imageViewer.open = true;
+            }
         }
 
         // --- Modals State ---
@@ -948,15 +1052,25 @@
         const rate = ref(null);
         const formattedRate = computed(() => rate.value || '...');
 
-        function selectDay(i){ selectedDay.value = i; selectedMapLocation.value = null; }
+        function selectDay(i){ selectedDay.value = i; selectedMapLocation.value = null;
+        }
 
         // --- Actions ---
         function openItineraryModal(item = null) {
-            Object.assign(newItineraryItem, item ? deepClone(item) : { id: null, title: '', note: '', time: '', address: '', dayIndex: selectedDay.value });
-            if(item) newItineraryItem.originalDayIndex = selectedDay.value;
+            // Update 2: Fix date logic
+            // Explicitly set dayIndex.
+            // Use item's dayIndex if exists (for editing), otherwise use selectedDay.
+            const targetDayIndex = (item && item.dayIndex !== undefined) ? item.dayIndex : selectedDay.value;
+            
+            Object.assign(newItineraryItem, {
+                dayIndex: targetDayIndex, // Ensure this is set first
+                ...deepClone(item || { id: null, title: '', note: '', time: '', address: '' })
+            });
+            if(item) newItineraryItem.originalDayIndex = targetDayIndex;
             itineraryModalOpen.value = true;
         }
-        function closeItineraryModal() { itineraryModalOpen.value = false; }
+        function closeItineraryModal() { itineraryModalOpen.value = false;
+        }
         function saveItineraryItem() {
             if (!newItineraryItem.title.trim()) return;
             const item = { ...newItineraryItem, id: newItineraryItem.id || generateId() };
@@ -984,7 +1098,15 @@
         }
         function addQuickItinerary(){
             if(!quickItinerary.title) return;
-            itinerary[selectedDay.value].push({ id: generateId(), title: quickItinerary.title, time: quickItinerary.time || '', note: '', address: '' });
+            // When quick adding, we must explicitly save the dayIndex
+            itinerary[selectedDay.value].push({ 
+                id: generateId(), 
+                title: quickItinerary.title, 
+                time: quickItinerary.time || '', 
+                note: '', 
+                address: '',
+                dayIndex: selectedDay.value // Ensure dayIndex is saved for future edits
+            });
             quickItinerary.title = ''; quickItinerary.time = '';
             saveAll();
         }
@@ -1002,8 +1124,10 @@
              modalRef.value = true;
         }
 
-        function openShoppingModal(item) { openGenericModal(shoppingModalOpen, newShoppingItem, { id: null, name: '', imageURL: '', isDone: false }, item); }
-        function closeShoppingModal() { shoppingModalOpen.value = false; }
+        function openShoppingModal(item) { openGenericModal(shoppingModalOpen, newShoppingItem, { id: null, name: '', imageURL: '', isDone: false }, item);
+        }
+        function closeShoppingModal() { shoppingModalOpen.value = false;
+        }
         async function saveShoppingItem() {
             if(!newShoppingItem.name) return;
             if(pendingUploadFiles.shopping) {
@@ -1015,10 +1139,13 @@
             }
             saveToList(shoppingList, newShoppingItem); closeShoppingModal();
         }
-        function removeShoppingItem(id) { removeFromList(shoppingList, id); }
+        function removeShoppingItem(id) { removeFromList(shoppingList, id);
+        }
 
-        function openInfoModal(item) { openGenericModal(infoModalOpen, newInfoItem, { id: null, title: '', note: '', isDone: false, imageURL: '' }, item); }
-        function closeInfoModal() { infoModalOpen.value = false; }
+        function openInfoModal(item) { openGenericModal(infoModalOpen, newInfoItem, { id: null, title: '', note: '', isDone: false, imageURL: '' }, item);
+        }
+        function closeInfoModal() { infoModalOpen.value = false;
+        }
         async function saveInfoItem() {
              if(!newInfoItem.title) return;
              if(pendingUploadFiles.info) {
@@ -1027,23 +1154,31 @@
                 const url = await uploadFileToSupabase(pendingUploadFiles.info);
                 if(url) newInfoItem.imageURL = url;
                 isUploading.value = false;
-            }
+             }
              saveToList(infoList, newInfoItem); closeInfoModal();
         }
-        function removeInfo(id) { removeFromList(infoList, id); }
+        function removeInfo(id) { removeFromList(infoList, id);
+        }
 
-        function addPreNote() { if(newPreNote.value.trim()) { preTripNotes.value.push({id: generateId(), name: newPreNote.value, isDone: false}); newPreNote.value=''; saveAll(); } }
-        function removePreNote(id) { removeFromList(preTripNotes, id); }
-        function togglePreNoteDone(id) { const n = preTripNotes.value.find(x=>x.id===id); if(n) {n.isDone=!n.isDone; saveAll();} }
-        function editPreNote(n) { openGenericModal(preNoteModalOpen, editingPreNote, {}, n); }
-        function closePreNoteModal() { preNoteModalOpen.value = false; }
-        function savePreNoteEdit() { saveToList(preTripNotes, editingPreNote); closePreNoteModal(); }
+        function addPreNote() { if(newPreNote.value.trim()) { preTripNotes.value.push({id: generateId(), name: newPreNote.value, isDone: false}); newPreNote.value='';
+        saveAll(); } }
+        function removePreNote(id) { removeFromList(preTripNotes, id);
+        }
+        function togglePreNoteDone(id) { const n = preTripNotes.value.find(x=>x.id===id); if(n) {n.isDone=!n.isDone;
+        saveAll();} }
+        function editPreNote(n) { openGenericModal(preNoteModalOpen, editingPreNote, {}, n);
+        }
+        function closePreNoteModal() { preNoteModalOpen.value = false;
+        }
+        function savePreNoteEdit() { saveToList(preTripNotes, editingPreNote); closePreNoteModal();
+        }
 
         function openExpenseModal(item) {
             const def = { id: null, name:'', amount:null, currency:'TWD', category:'餐飲', paymentMethod:'cash', date: new Date().toISOString().split('T')[0] };
             openGenericModal(expenseModalOpen, newExpense, def, item);
         }
-        function closeExpenseModal() { expenseModalOpen.value = false; }
+        function closeExpenseModal() { expenseModalOpen.value = false;
+        }
         function saveExpense() {
             if(!newExpense.name || !newExpense.amount) return;
             // Ensure ID exists
@@ -1057,13 +1192,15 @@
             }
             closeExpenseModal(); saveAll();
         }
-        function removeExpense(id) { removeFromList(expenses, id); }
+        function removeExpense(id) { removeFromList(expenses, id);
+        }
 
         function openFlightModal(id) {
              const def = { id: null, type: 'outbound', date: '2025-12-15', code: '', depTime:'', arrTime:'', fromCode:'HKG', toCode:'TPE' };
              if(id === 'new') {
                  def.type = days[selectedDay.value]?.type === 'flight-return' ? 'return' : 'outbound';
-                 if(def.type === 'return') { def.fromCode='TPE'; def.toCode='HKG'; def.date='2025-12-18'; }
+                 if(def.type === 'return') { def.fromCode='TPE'; def.toCode='HKG'; def.date='2025-12-18';
+                 }
                  Object.assign(newFlight, def);
              } else {
                  const f = flights.value.find(x => x.id === id) || flights.value.find(x => x.type === id); // id can be 'outbound' string
@@ -1071,7 +1208,8 @@
              }
              flightModalOpen.value = true;
         }
-        function closeFlightModal() { flightModalOpen.value = false; }
+        function closeFlightModal() { flightModalOpen.value = false;
+        }
         function saveFlight() {
             const item = { ...newFlight, id: newFlight.id || newFlight.type };
             const idx = flights.value.findIndex(f => f.id === item.id);
@@ -1079,7 +1217,6 @@
             closeFlightModal(); saveAll();
         }
 
-        // Point 9: Always open Itinerary Item modal for '+' button on Itinerary tab
         function openAddModal() {
             const t = currentTab.value;
             // Removed previous "isFlightDay" check here, logic split to the left button
@@ -1152,7 +1289,8 @@
                 syncState.value = 'synced';
             } catch(e) { if(!auto) syncState.value = 'error'; }
         }
-        async function forceReloadCloud() { await fetchCloud(false); }
+        async function forceReloadCloud() { await fetchCloud(false);
+        }
 
         async function fetchRate() {
             try {
@@ -1195,8 +1333,8 @@
             // Initial dummy data if empty (Local dev only)
             if(itinerary[0].length === 0) {
                  itinerary[0] = [
-                    { id:1, title: '航班抵達', time:'14:45', note:'第二航廈', address:'' },
-                    { id:2, title: '登記入住', time:'16:30', note:'西門町', address:'Westgate Hotel' }
+                    { id:1, title: '航班抵達', time:'14:45', note:'第二航廈', address:'', dayIndex: 0 },
+                    { id:2, title: '登記入住', time:'16:30', note:'西門町', address:'Westgate Hotel', dayIndex: 0 }
                  ];
             }
         });
