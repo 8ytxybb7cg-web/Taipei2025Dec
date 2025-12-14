@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1.0,user-scalable=no" />
-  <title>eMenu Taipei v2.14 — 雲端版</title>
+  <title>eMenu Taipei v2.14 — 雲端版 (Optimized)</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -12,69 +12,70 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
-    :root{
-      --glass-bg: rgba(255,255,255,0.86);
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.86);
       --card-radius: 18px;
     }
-    html,body,#app { height:100%; }
-    body{
+    html, body, #app { height: 100%; }
+    body {
       font-family: 'Noto Sans TC', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      background-color:#0f172a;
-      margin:0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #0f172a;
+      margin: 0;
     }
-    .no-scrollbar::-webkit-scrollbar { display:none; }
-    .no-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+    /* Utilities */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Transitions */
     .fade-enter-active, .fade-leave-active { transition: opacity .25s ease; }
     .fade-enter-from, .fade-leave-to { opacity: 0; }
+    
+    /* General Styles */
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 12px); }
     .task-done { text-decoration: line-through; color: #9ca3af; }
 
+    /* Components */
     .iphone-dock {
-        background: rgba(255,255,255,0.68);
+        background: rgba(255, 255, 255, 0.68);
         backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-radius: 28px;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
         padding: 0.75rem 1.875rem;
-        border: 1px solid rgba(255,255,255,0.35);
+        border: 1px solid rgba(255, 255, 255, 0.35);
     }
     .glass-card { 
         border-radius: var(--card-radius);
-        background: rgba(255,255,255,0.88);
-        border: 1px solid rgba(255,255,255,0.35);
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.35);
         padding: 0.75rem; 
-        box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+        box-shadow: 0 8px 24px rgba(2, 6, 23, 0.06);
     }
     .expense-card {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 0, 20, 0.5) 0%,
-    rgba(0, 0, 20, 0.58) 100%
-  );
+      background: linear-gradient(135deg, rgba(0, 0, 20, 0.5) 0%, rgba(0, 0, 20, 0.58) 100%);
+      backdrop-filter: blur(12px) saturate(115%);
+      -webkit-backdrop-filter: blur(12px) saturate(115%);
+      color: #ffffff;
+      border-radius: 24px;
+      padding: 1.25rem;
+      box-shadow: 0 14px 36px rgba(0, 0, 20, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      border: none;
+    }
 
-  backdrop-filter: blur(12px) saturate(115%);
-  -webkit-backdrop-filter: blur(12px) saturate(115%);
-
-  color: #ffffff;
-  border-radius: 24px;
-  padding: 1.25rem;
-
-  box-shadow:
-    0 14px 36px rgba(0, 0, 20, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-
-  border: none;
-}
-
+    /* Mobile Input Fix */
     @media screen and (max-width: 768px) {
         input, select, textarea { font-size: 16px !important; }
     }
+
+    /* Sync Status Animations */
     .sync-status { transition: all 0.3s ease; }
     .sync-saving { color: #f59e0b; }
     .sync-synced { color: #10b981; }
     .sync-error { color: #ef4444; }
     .sync-loading { color: #3b82f6; }
+    
     .rotate-icon { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
@@ -99,7 +100,6 @@
             <div class="flex items-center gap-2 mt-0.5">
                 <p class="text-xs text-gray-500 opacity-50">{{ appVersion }}</p>
                 <div class="flex items-center gap-2">
-            
                     <div class="flex items-center gap-1 bg-white/60 px-2 py-0.5 rounded-full border border-gray-200">
                         <div class="w-2 h-2 rounded-full" 
                             :class="{
@@ -109,7 +109,7 @@
                                 'bg-red-500': syncState === 'error'
                             }"></div>
                         <span class="text-[10px] font-medium sync-status whitespace-nowrap" 
-                            :class="{
+                              :class="{
                                 'sync-synced': syncState === 'synced', 
                                 'sync-saving': syncState === 'saving', 
                                 'sync-loading': syncState === 'loading',
@@ -119,7 +119,7 @@
                         </span>
                     </div>
                     <button @click="forceReloadCloud" class="bg-white/60 p-1 rounded-full border border-gray-200 text-gray-500 active:bg-gray-200" title="立即同步">
-                        <i class="ph ph-arrows-clockwise text-xs" :class="{'rotate-icon': syncState === 'loading'}"></i>
+                       <i class="ph ph-arrows-clockwise text-xs" :class="{'rotate-icon': syncState === 'loading'}"></i>
                     </button>
                 </div>
             </div>
@@ -140,7 +140,7 @@
         <div class="flex justify-between gap-2 overflow-x-auto no-scrollbar pb-2">
           <button @click="currentTab = '行前'" 
                class="flex-shrink-0 w-[20%] min-w-[72px] h-20 rounded-xl flex flex-col items-center justify-center text-xs font-semibold transition-transform"
-                  :class="currentTab === '行前' ? 'bg-gradient-to-br from-sky-200 to-teal-100 scale-105 shadow-md text-gray-900 border border-sky-200' : 'bg-white/80 border border-white/40 text-gray-600'">
+               :class="currentTab === '行前' ? 'bg-gradient-to-br from-sky-200 to-teal-100 scale-105 shadow-md text-gray-900 border border-sky-200' : 'bg-white/80 border border-white/40 text-gray-600'">
              <i class="ph ph-list text-xl mb-1"></i>
              <span>行前</span>
           </button>
@@ -164,7 +164,7 @@
           </div>
           <div class="flex h-24">
             <div class="flex-1 flex items-center justify-start">
-                <div class="text-[64px] font-bold text-gray-800 leading-none">{{ weather.temp }}°</div>
+               <div class="text-[64px] font-bold text-gray-800 leading-none">{{ weather.temp }}°</div>
             </div>
             <div class="flex-shrink-0 w-24 flex items-center justify-center">
                 <i :class="weatherIconClass" class="text-[64px] text-sky-500 leading-none"></i>
@@ -213,7 +213,7 @@
 
         <transition name="fade">
             <div v-if="selectedMapLocation" class="glass-card !p-4 bg-white/95 border-2 border-sky-200 relative">
-                <button @click="selectedMapLocation = null" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+               <button @click="selectedMapLocation = null" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
                     <i class="ph ph-x text-lg"></i>
                 </button>
                 <div class="mb-4 pr-6">
@@ -221,7 +221,7 @@
                          <i class="ph ph-map-pin-fill text-red-500 text-xl"></i>
                          <h4 class="text-lg font-bold text-gray-800">{{ selectedMapLocation.title }}</h4>
                     </div>
-                 <p class="text-sm text-gray-500 pl-7">{{ selectedMapLocation.address }}</p>
+                    <p class="text-sm text-gray-500 pl-7">{{ selectedMapLocation.address }}</p>
                 </div>
                 <div class="flex justify-center gap-3">
                     <a :href="generateMapLink(selectedMapLocation.address, 'search')" target="_blank"
@@ -246,8 +246,7 @@
       </div>
 
       <div class="rounded-2xl p-3 bg-white/85 border border-white/30 backdrop-blur shadow" :class="{'!bg-transparent !border-0 !shadow-none !p-0': currentTab === '記帳'}">
-        <div>
-
+        
           <div v-if="currentTab === '行前'">
             <h3 class="text-base font-bold mb-2">✅ 行前準備清單</h3>
             <ul class="space-y-2">
@@ -278,18 +277,17 @@
           <div v-if="currentTab === '行程'">
             <h3 class="text-base font-bold mb-2">今日行程 — {{ days[selectedDay].label }}</h3>
             <ul class="space-y-2">
-              <li v-for="(it, idx) in sortedItinerary" :key="it.id" 
+               <li v-for="(it, idx) in sortedItinerary" :key="it.id" 
                   @click="showLocationOnMap(it)"
                   :class="{'cursor-pointer hover:bg-sky-50 transition border-l-4 border-l-sky-400 pl-3': (it.address || '').trim() !== '', 'border-l-transparent': (it.address || '').trim() === ''}"
                   class="p-3 rounded-lg bg-white/80 border border-white/30 flex justify-between items-center relative overflow-hidden">
                 <div class="flex-1">
                   <div class="font-medium text-gray-800">{{ it.title }}</div>
                   <div class="text-xs text-gray-500">{{ it.note }}</div>
-                  <div v-if="(it.address || '').trim() !== ''" class="text-[10px] text-sky-500 mt-1 flex items-center">
+                   <div v-if="(it.address || '').trim() !== ''" class="text-[10px] text-sky-500 mt-1 flex items-center">
                       <i class="ph ph-map-pin-line mr-1"></i> 點擊導航
                   </div>
                 </div>
-                
                 <div class="flex items-center gap-2">
                     <div class="text-sm font-bold text-gray-700 mr-2">{{ it.time || '--:--' }}</div>
                     <button @click.stop="openItineraryModal(it)" class="text-gray-400 text-lg hover:text-sky-600 transition p-1"><i class="ph ph-pencil-simple"></i></button>
@@ -298,6 +296,7 @@
               </li>
             </ul>
             <p v-if="sortedItinerary.length === 0" class="p-3 text-sm text-gray-500 text-center border-dashed border-2 rounded-lg">今日暫無行程</p>
+            
             <div v-if="isFlightDay" class="mt-4 pt-3 border-t border-gray-200/50">
                <label class="text-xs text-gray-600 font-bold mb-1 block">➕ 快速新增行程</label>
                <div class="flex gap-2">
@@ -319,7 +318,7 @@
                   </i>
                   <div class="flex-1 min-w-0">
                     <div class="font-medium" :class="{'task-done': item.isDone, 'text-gray-900': !item.isDone}">{{ item.name }}</div>
-                    <div v-if="item.imageURL" class="mt-2">
+                     <div v-if="item.imageURL" class="mt-2">
                         <a v-if="isInstagramLink(item.imageURL)" :href="item.imageURL" target="_blank" 
                            class="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded inline-flex items-center gap-1">
                            <i class="ph ph-instagram-logo"></i> 查看貼文
@@ -341,8 +340,7 @@
           </div>
 
           <div v-if="currentTab === '記帳'">
-            
-             <div class="expense-card mb-4 relative">
+              <div class="expense-card mb-4 relative">
                 <button @click="openExpenseModal(null)" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full backdrop-blur-sm transition">
                     <i class="ph ph-plus text-xl font-bold"></i>
                 </button>
@@ -364,7 +362,7 @@
                         <div class="text-lg font-bold">${{ formatNumber(totalExpense.cashHkd, 0) }}</div>
                         <div class="text-blue-200/80 text-[10px]">TWD {{ formatNumber(totalExpense.cashTwd, 0) }}</div>
                     </div>
-                </div>
+                 </div>
              </div>
 
             <div class="bg-white/50 p-1 rounded-xl flex mb-3 backdrop-blur-sm">
@@ -405,7 +403,7 @@
 
           <div v-if="currentTab === '資訊'">
             <h3 class="text-base font-bold mb-2">ℹ️ 實用資訊</h3>
-            <ul class="space-y-2">
+             <ul class="space-y-2">
               <li v-for="(it, idx) in infoList" :key="it.id" class="p-3 rounded-lg bg-white/80 border flex justify-between items-start">
                 <div class="flex items-start gap-2 flex-1">
                   <i class="ph text-xl cursor-pointer mt-1 flex-shrink-0" 
@@ -417,7 +415,7 @@
                     <div v-if="it.imageURL" class="mt-2">
                         <a v-if="isInstagramLink(it.imageURL)" :href="it.imageURL" target="_blank" 
                            class="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded inline-flex items-center gap-1">
-                           <i class="ph ph-instagram-logo"></i> 查看貼文
+                            <i class="ph ph-instagram-logo"></i> 查看貼文
                         </a>
                         <div v-else class="relative group cursor-pointer w-20 h-20" @click="openImageViewer(it.imageURL)">
                              <img :src="it.imageURL" class="w-full h-full object-cover rounded-lg border border-gray-200 shadow-sm" alt="Thumbnail">
@@ -429,13 +427,11 @@
                 <div class="flex items-center gap-2 flex-shrink-0 ml-2">
                     <button @click="openInfoModal(it)" class="text-gray-500 text-base hover:text-sky-600 transition"><i class="ph ph-pencil-simple"></i></button>
                     <button class="text-red-500 text-sm" @click="removeInfo(it.id)"><i class="ph ph-trash"></i></button>
-                </div>
+                 </div>
               </li>
               <li v-if="infoList.length === 0" class="p-3 text-sm text-gray-500 text-center border-dashed border-2 rounded-lg">暫無資訊，請新增</li>
             </ul>
           </div>
-
-        </div>
       </div>
 
       <div class="h-24 flex items-end justify-center pb-4">
@@ -470,7 +466,7 @@
             <div class="flex items-center gap-3 mt-3">
               <input type="checkbox" id="pre-note-done" v-model="editingPreNote.isDone" class="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded">
               <label for="pre-note-done" class="text-gray-900">已完成</label>
-             </div>
+            </div>
           </div>
           <div class="mt-5 flex justify-end gap-3">
             <button @click="closePreNoteModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
@@ -481,7 +477,7 @@
     </transition>
 
     <transition name="fade">
-        <div v-if="flightModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeFlightModal">
+         <div v-if="flightModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeFlightModal">
              <div class="bg-white rounded-xl w-full max-w-sm p-5 shadow-2xl">
                 <h3 class="text-xl font-bold mb-4">{{ newFlight.id ? '編輯航班' : '新增航班' }}</h3>
                 <div class="space-y-3 text-sm">
@@ -495,14 +491,14 @@
                     <input v-model="newFlight.code" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="航班代碼 (例: CX400)">
                     <input v-model="newFlight.title" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="航班名稱/備註">
                     <div class="flex gap-3">
-                         <input v-model="newFlight.fromCode" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="出發 (HKG)">
+                        <input v-model="newFlight.fromCode" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="出發 (HKG)">
                         <input v-model="newFlight.toCode" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="抵達 (TPE)">
                     </div>
-                     <div class="flex gap-3">
+                    <div class="flex gap-3">
                         <input v-model="newFlight.fromTerminal" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="出發航廈">
                         <input v-model="newFlight.toTerminal" class="flex-1 min-w-0 p-2 rounded-lg border bg-white text-base" placeholder="抵達航廈">
                     </div>
-                     <div class="flex gap-3">
+                    <div class="flex gap-3">
                         <input v-model="newFlight.depTime" type="time" class="flex-1 p-2 rounded-lg border bg-white text-base">
                         <input v-model="newFlight.arrTime" type="time" class="flex-1 p-2 rounded-lg border bg-white text-base">
                     </div>
@@ -510,7 +506,7 @@
                 </div>
                 <div class="mt-5 flex justify-end gap-3">
                     <button @click="closeFlightModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
-                     <button @click="saveFlight" class="px-4 py-2 bg-sky-600 text-white rounded-lg">儲存</button>
+                    <button @click="saveFlight" class="px-4 py-2 bg-sky-600 text-white rounded-lg">儲存</button>
                 </div>
             </div>
         </div>
@@ -526,16 +522,15 @@
                              <option v-for="(d, i) in days" :key="i" :value="i">
                                  12/{{ d.date }} ({{ d.week }}) — {{ d.label }}
                              </option>
-                         </select>
+                        </select>
                     </div>
-
                     <div class="flex gap-3">
                         <input v-model="newItineraryItem.title" class="flex-1 p-2 rounded-lg border bg-white text-base" placeholder="標題">
                         <input v-model="newItineraryItem.time" type="time" class="w-24 p-2 rounded-lg border bg-white text-base">
                     </div>
                     <input v-model="newItineraryItem.address" class="w-full p-2 rounded-lg border bg-white text-base" placeholder="Google Map 地址 (選填)">
                     <textarea v-model="newItineraryItem.note" class="w-full p-2 rounded-lg border bg-white text-base" rows="3" placeholder="備註..."></textarea>
-                 </div>
+                </div>
                 <div class="mt-5 flex justify-end gap-3">
                     <button @click="closeItineraryModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
                     <button @click="saveItineraryItem" class="px-4 py-2 bg-sky-600 text-white rounded-lg">儲存</button>
@@ -568,12 +563,12 @@
                              <img :src="tempUploadPreview.shopping" class="h-16 w-16 object-cover rounded border">
                              <div class="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5"><i class="ph ph-check text-xs"></i></div>
                          </div>
-                     </div>
+                    </div>
 
                     <div class="flex items-center gap-3 mt-1">
                         <input type="checkbox" id="shopping-done" v-model="newShoppingItem.isDone" class="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded">
                         <label for="shopping-done" class="text-gray-900">已購買</label>
-                     </div>
+                    </div>
                 </div>
                 <div class="mt-5 flex justify-end gap-3">
                     <button @click="closeShoppingModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
@@ -621,7 +616,7 @@
                     </div>
                 </div>
                 <div class="mt-5 flex justify-end gap-3">
-                    <button @click="closeExpenseModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
+                   <button @click="closeExpenseModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
                     <button @click="saveExpense" class="px-4 py-2 bg-blue-600 text-white rounded-lg">
                         {{ newExpense.id ? '儲存' : '加入' }}
                     </button>
@@ -651,10 +646,10 @@
                         <div v-if="uploadStatus.info" class="text-xs text-blue-500 mt-1 animate-pulse">
                             {{ uploadStatus.info }}
                         </div>
-                         <div v-if="tempUploadPreview.info" class="mt-2 relative inline-block">
+                        <div v-if="tempUploadPreview.info" class="mt-2 relative inline-block">
                              <img :src="tempUploadPreview.info" class="h-16 w-16 object-cover rounded border">
                              <div class="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5"><i class="ph ph-check text-xs"></i></div>
-                         </div>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-3 mt-1">
@@ -663,7 +658,7 @@
                     </div>
                 </div>
                 <div class="mt-5 flex justify-end gap-3">
-                    <button @click="closeInfoModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
+                   <button @click="closeInfoModal" class="px-4 py-2 text-gray-600 rounded-lg border bg-gray-100">取消</button>
                     <button @click="saveInfoItem" class="px-4 py-2 bg-sky-600 text-white rounded-lg" :disabled="isUploading">
                          {{ isUploading ? '上傳中...' : '儲存' }}
                     </button>
@@ -677,58 +672,60 @@
 
   <script>
     const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+    
+    // --- Constants & Config ---
+    const SUPABASE_URL = 'https://myrhatzdypiwwgmmfbuw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuYQVvKi';
+    const TRIP_ID = 'taipei_trip2025';
+    const DEFAULT_RATE = 0.25;
+    const CURRENCY_RATES = {
+        'HKD': 1,
+        'JPY': 0.052,
+        'USD': 7.8
+    };
+
+    // --- Utilities ---
     const generateId = () => Date.now() + Math.floor(Math.random() * 1000);
-    const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+    
+    // Improved cloning: use structuredClone if available, fallback to JSON
+    const deepClone = (obj) => {
+        if (typeof structuredClone === 'function') return structuredClone(obj);
+        return JSON.parse(JSON.stringify(obj));
+    };
+
     const initializeListWithIds = (list) => list.map(item => ({ ...item, id: item.id || generateId() }));
+    
     function isInstagramLink(url) {
       if (!url) return false;
       return /^(https?:\/\/(www\.)?instagram\.com\/(p|reel)\/)/i.test(url);
     }
     
-    // Formatting Utility
     function formatNumber(num, precision = 0) {
        if(num === undefined || num === null || num === '') return '0';
        return Number(num).toLocaleString('en-US', { minimumFractionDigits: precision, maximumFractionDigits: precision });
     }
 
-    // --- SUPABASE SETUP ---
-    const SUPABASE_URL = 'https://myrhatzdypiwwgmmfbuw.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_bnnah-2fsCaQnKZDoKNJQw_NuYQVvKi';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // --- UTILITIES ---
-    function describeWeather(code) {
-      if (code >= 95) return '雷陣雨';
-      if (code >= 80) return '陣雨';
-      if (code >= 60) return '小雨';
-      if (code >= 50) return '毛毛雨';
-      if (code >= 40) return '有霧';
-      if (code >= 30) return '陰天';
-      if (code >= 20) return '局部多雲';
-      if (code >= 10) return '晴時多雲';
-      return '晴天';
-    }
-
 
     createApp({
       setup() {
-        const appVersion = ref('v251214-2.14'); // **UPDATED VERSION**
+        const appVersion = ref('v251214-2.14-opt'); 
         const currentTab = ref('行程');
         const selectedDay = ref(0); 
 
-        // Sync Status
+        // --- Sync Status ---
         const syncState = ref('synced'); // 'synced', 'saving', 'loading', 'error'
         const syncStatusText = computed(() => {
-          switch (syncState.value) {
-            case 'synced': return '已同步';
-            case 'saving': return '同步中';
-            case 'loading': return '下載中';
-            case 'error': return '同步失敗';
-            default: return '未知';
-          }
+          const statusMap = {
+              'synced': '已同步',
+              'saving': '同步中',
+              'loading': '下載中',
+              'error': '同步失敗'
+          };
+          return statusMap[syncState.value] || '未知';
         });
 
-        // Date/Day Info - Updated to English Week Days
+        // --- Date/Day Info ---
         const days = reactive([
           { date: '15', week: 'Mon', label: '抵達 (Day 1)', type: 'flight-out' },
           { date: '16', week: 'Tue', label: 'Day 2', type: 'normal' },
@@ -737,7 +734,7 @@
         ]);
         const isFlightDay = computed(() => ['flight-out', 'flight-return'].includes(days[selectedDay.value]?.type));
 
-        // Itinerary
+        // --- Itinerary Data ---
         const initialItinerary = [
           [
             { title: '航班抵達 (CX400)', note: 'TPE 14:45 抵達', time: '14:45', address: '台灣桃園國際機場' },
@@ -762,17 +759,20 @@
             { title: '回香港', note: '搭乘 CX443 回 HKG', time: '15:50', address: '台灣桃園國際國際' },
           ]
         ];
-        const itinerary = reactive(initialItinerary.map(dayItems => initializeListWithIds(dayItems).map(item => ({ ...item, address: item.address || '' }))));
+        
+        const itinerary = reactive(initialItinerary.map(dayItems => 
+            initializeListWithIds(dayItems).map(item => ({ ...item, address: item.address || '' }))
+        ));
+
         const sortedItinerary = computed(() => {
           const currentDayItinerary = itinerary[selectedDay.value];
           if (!currentDayItinerary || currentDayItinerary.length === 0) return [];
           return [...currentDayItinerary].sort((a, b) => {
-            const timeA = a.time || '23:59';
-            const timeB = b.time || '23:59';
-            return timeA.localeCompare(timeB);
+            return (a.time || '23:59').localeCompare(b.time || '23:59');
           });
         });
-        // Map logic
+
+        // --- Map Logic ---
         const selectedMapLocation = ref(null);
         function showLocationOnMap(item) {
           if (item.address && item.address.trim() !== '') {
@@ -784,16 +784,18 @@
         function generateMapLink(address, type) {
           if (!address) return '#';
           const encodedAddress = encodeURIComponent(address);
-          if (type === 'search') return `https://www.google.com/maps/search/?api=1&query=$${encodedAddress}`;
-          if (type === 'navigate') return `https://www.google.com/maps/dir/?api=1&destination=$${encodedAddress}`;
+          const baseUrl = 'http://maps.google.com/?q=';
+          if (type === 'search') return `${baseUrl}${encodedAddress}`;
+          if (type === 'navigate') return `${baseUrl}${encodedAddress}&dirflg=d`;
           return '#';
         }
 
-        // Flights
+        // --- Flights ---
         const flights = ref([
           { id: 'outbound', type: 'outbound', date: '2025-12-15', code: 'CX400', depTime: '12:45', arrTime: '14:45', fromCode: 'HKG', fromTerminal: 'T1', toCode: 'TPE', toTerminal: 'T2', title: 'Cathay Pacific', note: '經濟艙 (已劃位)', isConfirmed: true },
           { id: 'return', type: 'return', date: '2025-12-18', code: 'CX443', depTime: '17:00', arrTime: '18:55', fromCode: 'TPE', fromTerminal: 'T2', toCode: 'HKG', toTerminal: 'T1', title: 'Cathay Pacific', note: '經濟艙', isConfirmed: false },
         ]);
+        
         const activeFlight = computed(() => {
           const dayType = days[selectedDay.value]?.type;
           if (dayType === 'flight-out') return flights.value.find(f => f.type === 'outbound');
@@ -801,8 +803,8 @@
           return null;
         });
         const shouldShowFlightCard = computed(() => activeFlight.value !== null && ['行前', '行程'].includes(currentTab.value));
-        
-        // --- FILE UPLOAD LOGIC ---
+
+        // --- File Upload ---
         const isUploading = ref(false);
         const uploadStatus = reactive({ shopping: '', info: '' });
         const tempUploadPreview = reactive({ shopping: null, info: null });
@@ -811,8 +813,6 @@
         function handleFileUpload(event, type) {
             const file = event.target.files[0];
             if (!file) return;
-            
-            // Set preview immediately
             tempUploadPreview[type] = URL.createObjectURL(file);
             pendingUploadFiles[type] = file;
             uploadStatus[type] = '準備上傳...';
@@ -821,18 +821,10 @@
         async function uploadFileToSupabase(file) {
             if (!file) return null;
             const fileName = `${Date.now()}_${Math.floor(Math.random()*1000)}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-            
             try {
-                const { data, error } = await supabaseClient
-                    .storage
-                    .from('uploads')
-                    .upload(fileName, file);
+                const { data, error } = await supabaseClient.storage.from('uploads').upload(fileName, file);
                 if (error) throw error;
-                
-                const { data: publicData } = supabaseClient
-                    .storage
-                    .from('uploads')
-                    .getPublicUrl(fileName);
+                const { data: publicData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
                 return publicData.publicUrl;
             } catch (e) {
                 console.error('Upload failed:', e);
@@ -841,7 +833,7 @@
             }
         }
 
-        // --- IMAGE VIEWER ---
+        // --- Image Viewer ---
         const imageViewer = reactive({ open: false, url: '' });
         function openImageViewer(url) {
             if (!url) return;
@@ -853,7 +845,7 @@
             }
         }
 
-        // Modals & New Item Data
+        // --- Modals & Data Objects ---
         const itineraryModalOpen = ref(false);
         const newItineraryItem = reactive({ id: null, title: '', note: '', time: '', address: '', dayIndex: 0, originalDayIndex: null });
         const quickItinerary = reactive({ title: '', time: '' });
@@ -865,33 +857,42 @@
         ]));
         const shoppingModalOpen = ref(false);
         const newShoppingItem = reactive({ id: null, name: '', imageURL: '', isDone: false });
-        
+
         const expenses = ref([
           { id: Date.now()+1, name:'雅香火鍋', amount: 300, category:'餐飲', date: '12/15', isDone:false, currency: 'TWD', paymentMethod: 'cash' },
           { id: Date.now()+2, name:'Taxi 機場->酒店', amount: 250, category:'交通', date: '12/15', isDone:false, currency: 'TWD', paymentMethod: 'credit_card' }
         ]);
         const expenseModalOpen = ref(false);
-        const expenseFilter = ref('all'); // 'all', 'credit', 'cash'
+        const expenseFilter = ref('all');
         const newExpense = reactive({ id: null, name:'', amount:null, currency:'TWD', category:'餐飲', paymentMethod: 'cash', date: '' });
+
         const infoList = ref(initializeListWithIds([
           { title:'西門町永安棧 (電話)', note:'+886 2 2352 3090', isDone:false, imageURL: '' },
         ]));
-        
-        // Expense Computed Logic (Updated to return Numbers)
+        const infoModalOpen = ref(false);
+        const newInfoItem = reactive({ id: null, title: '', note: '', isDone: false, imageURL: '' });
+
+        const preTripNotes = ref(initializeListWithIds([
+          { name:'兌換台幣', isDone: true },
+          { name:'確認住宿預約單', isDone: false },
+          { name:'購買 SIM 卡', isDone: false },
+          { name:'護照影本備份', isDone: true }
+        ]));
+        const newPreNote = ref(''); 
+        const preNoteModalOpen = ref(false);
+        const editingPreNote = reactive({ id: null, name: '', isDone: false });
+
+        // --- Expense Logic ---
         const totalExpense = computed(() => {
-          const twdToHkdRate = Number(rate.value) || 0.25; // Default fallback if rate fails
-          // Helper to convert any amount to HKD
+          const twdToHkdRate = Number(rate.value) || DEFAULT_RATE;
+          
           const toHKD = (amount, currency) => {
-              if (currency === 'HKD') return amount;
               if (currency === 'TWD') return amount * twdToHkdRate;
-              if (currency === 'JPY') return amount * 0.052; // Approx
-              if (currency === 'USD') return amount * 7.8;
+              if (CURRENCY_RATES[currency]) return amount * CURRENCY_RATES[currency];
               return amount;
           };
 
-          let totalHkd = 0;
-          let creditHkd = 0;
-          let cashHkd = 0;
+          let totalHkd = 0, creditHkd = 0, cashHkd = 0;
 
           expenses.value.forEach(e => {
              const val = toHKD(Number(e.amount) || 0, e.currency);
@@ -900,78 +901,64 @@
              else cashHkd += val;
           });
 
-          // Convert back to TWD for display (approx)
           const toTWD = (hkdVal) => (hkdVal / twdToHkdRate);
           
           return {
-              hkd: totalHkd, // Return Number
-              twd: toTWD(totalHkd), // Return Number
+              hkd: totalHkd,
+              twd: toTWD(totalHkd),
               creditHkd: creditHkd,
               creditTwd: toTWD(creditHkd),
               cashHkd: cashHkd,
               cashTwd: toTWD(cashHkd)
-          };
+           };
         });
 
-        // Updated Filtered Expenses with Date Sorting (Newest First)
         const filteredExpenses = computed(() => {
-            let list = [];
-            if (expenseFilter.value === 'all') list = expenses.value;
-            else if (expenseFilter.value === 'credit') list = expenses.value.filter(e => e.paymentMethod === 'credit_card');
-            else list = expenses.value.filter(e => e.paymentMethod !== 'credit_card');
+            let list = expenses.value;
+            if (expenseFilter.value === 'credit') list = list.filter(e => e.paymentMethod === 'credit_card');
+            else if (expenseFilter.value === 'cash') list = list.filter(e => e.paymentMethod !== 'credit_card');
 
-            // Sort: Date Descending (MM/DD) -> ID Descending
             return [...list].sort((a, b) => {
-                const dateA = a.date || '0/0';
-                const dateB = b.date || '0/0';
-                
-                // Parse "MM/DD" into comparable integer MMDD
-                const [mA, dA] = dateA.split('/').map(Number);
-                const [mB, dB] = dateB.split('/').map(Number);
-                
-                const valA = (mA || 0) * 100 + (dA || 0);
-                const valB = (mB || 0) * 100 + (dB || 0);
-
-                if (valA !== valB) return valB - valA; // Descending Date
-                return b.id - a.id; // Newest Created First
+                // Parse MM/DD manually for speed, fallback to 0
+                const getVal = (dateStr) => {
+                    if(!dateStr) return 0;
+                    const parts = dateStr.split('/');
+                    return (Number(parts[0]) || 0) * 100 + (Number(parts[1]) || 0);
+                }
+                const diff = getVal(b.date) - getVal(a.date);
+                if (diff !== 0) return diff;
+                return b.id - a.id; // Newest first
             });
         });
-        
-        // Weather & Rate
+
+        // --- Weather & Rate ---
         const weather = reactive({ temp:'--', desc:'載入中...', rain:0, code:0 });
-        const weatherIconClass = computed(()=>{
+        const weatherIconClass = computed(() => {
           const c = weather.code || 0;
-          if (c>=95) return 'ph ph-cloud-lightning-rain';
-          if (c>=80) return 'ph ph-cloud-lightning-rain';
-          if (c>=50) return 'ph ph-cloud-rain';
-          if (c>2) return 'ph ph-cloud';
+          if (c >= 80) return 'ph ph-cloud-lightning-rain';
+          if (c >= 50) return 'ph ph-cloud-rain';
+          if (c > 2) return 'ph ph-cloud';
           return 'ph ph-sun';
         });
+
         const rate = ref(null);
         const lastRateUpdate = ref(null);
-        const formattedRate = computed(()=> rate.value !== null ? rate.value : '...');
-        const lastRateUpdateLabel = computed(()=>{
+        const formattedRate = computed(() => rate.value !== null ? rate.value : '...');
+        const lastRateUpdateLabel = computed(() => {
           if (!lastRateUpdate.value) return '—';
           return new Date(lastRateUpdate.value).toLocaleTimeString('zh-HK');
         });
+
         function selectDay(i){
           selectedDay.value = i;
           selectedMapLocation.value = null;
         }
 
-        // --- ACTIONS ---
+        // --- Action Handlers ---
 
-        // Itinerary
+        // Itinerary Actions
         function openItineraryModal(item = null) {
-          Object.assign(newItineraryItem, { 
-              id: null, 
-              title: '', 
-              note: '', 
-              time: '', 
-              address: '', 
-              dayIndex: selectedDay.value, 
-              originalDayIndex: null 
-          });
+          Object.assign(newItineraryItem, { id: null, title: '', note: '', time: '', address: '', dayIndex: selectedDay.value, originalDayIndex: null });
           if (item) {
               Object.assign(newItineraryItem, deepClone(item));
               newItineraryItem.dayIndex = selectedDay.value; 
@@ -979,9 +966,7 @@
           }
           itineraryModalOpen.value = true;
         }
-        function closeItineraryModal() {
-          itineraryModalOpen.value = false;
-        }
+        function closeItineraryModal() { itineraryModalOpen.value = false; }
         
         function saveItineraryItem() {
           if (!newItineraryItem.title.trim()) return;
@@ -995,20 +980,17 @@
           const targetDayIdx = newItineraryItem.dayIndex;
           const originalDayIdx = newItineraryItem.originalDayIndex;
 
-          if (newItineraryItem.id) {
-              if (originalDayIdx !== null && originalDayIdx !== targetDayIdx) {
-                   const oldList = itinerary[originalDayIdx];
-                   const oldIndex = oldList.findIndex(i => i.id === itemToSave.id);
-                   if (oldIndex !== -1) oldList.splice(oldIndex, 1);
-                   
-                   itinerary[targetDayIdx].push(itemToSave);
-              } else {
-                   const list = itinerary[targetDayIdx];
-                   const index = list.findIndex(i => i.id === itemToSave.id);
-                   if (index !== -1) list.splice(index, 1, itemToSave);
-              }
-          } 
-          else {
+          if (newItineraryItem.id && originalDayIdx !== null && originalDayIdx !== targetDayIdx) {
+               // Move item across days
+               const oldList = itinerary[originalDayIdx];
+               const oldIndex = oldList.findIndex(i => i.id === itemToSave.id);
+               if (oldIndex !== -1) oldList.splice(oldIndex, 1);
+               itinerary[targetDayIdx].push(itemToSave);
+          } else if (newItineraryItem.id) {
+               const list = itinerary[targetDayIdx];
+               const index = list.findIndex(i => i.id === itemToSave.id);
+               if (index !== -1) list.splice(index, 1, itemToSave);
+          } else {
               itinerary[targetDayIdx].push(itemToSave);
           }
 
@@ -1032,45 +1014,40 @@
         function addQuickItinerary(){
           if (!quickItinerary.title.trim()) return;
           const dayItems = itinerary[selectedDay.value];
-          const itemToSave = {
+          dayItems.push({
             id: generateId(),
             title: quickItinerary.title.trim(),
             note: '',
             time: quickItinerary.time || '',
             address: ''
-          };
-          dayItems.push(itemToSave);
+          });
           quickItinerary.title = '';
           quickItinerary.time = '';
           saveAll();
         }
 
-        // Flights
+        // Flight Actions
         const flightModalOpen = ref(false);
         const newFlight = reactive({ id: null, type: 'outbound', date: '', code: '', depTime: '', arrTime: '', fromCode: '', fromTerminal: '', toCode: '', toTerminal: '', title: '', note: '' });
+        
         function openFlightModal(flightId = null){
-          Object.assign(newFlight, { id: null, type: 'outbound', date: days[selectedDay.value]?.date ? `2025-12-${days[selectedDay.value].date.padStart(2, '0')}` : '2025-12-15', code: '', depTime: '', arrTime: '', fromCode: '', fromTerminal: '', toCode: '', toTerminal: '', title: '', note: '' });
+          const defaultDate = days[selectedDay.value]?.date ? `2025-12-${days[selectedDay.value].date.padStart(2, '0')}` : '2025-12-15';
+          Object.assign(newFlight, { id: null, type: 'outbound', date: defaultDate, code: '', depTime: '', arrTime: '', fromCode: '', fromTerminal: '', toCode: '', toTerminal: '', title: '', note: '' });
+          
           const dayType = days[selectedDay.value]?.type;
           if (dayType === 'flight-out') newFlight.type = 'outbound';
           else if (dayType === 'flight-return') newFlight.type = 'return';
+
           let flight = flights.value.find(f => f.id === flightId);
-          if (!flight && flightId === 'new') { 
-             flight = flights.value.find(f => f.type === newFlight.type);
-          }
+          if (!flight && flightId === 'new') flight = flights.value.find(f => f.type === newFlight.type);
           
           if (flight) Object.assign(newFlight, deepClone(flight));
-          else if(dayType === 'flight-out' && !flightId){
-            newFlight.fromCode = 'HKG';
-            newFlight.toCode = 'TPE';
-          } else if(dayType === 'flight-return' && !flightId){
-            newFlight.fromCode = 'TPE';
-            newFlight.toCode = 'HKG';
-          }
+          else if(dayType === 'flight-out' && !flightId) { newFlight.fromCode = 'HKG'; newFlight.toCode = 'TPE'; }
+          else if(dayType === 'flight-return' && !flightId) { newFlight.fromCode = 'TPE'; newFlight.toCode = 'HKG'; }
+          
           flightModalOpen.value = true;
         }
-        function closeFlightModal() {
-          flightModalOpen.value = false;
-        }
+        function closeFlightModal() { flightModalOpen.value = false; }
         function saveFlight(){
           if (!newFlight.code.trim()) return;
           const itemToSave = { ...deepClone(newFlight), id: newFlight.id || newFlight.type || generateId() };
@@ -1080,28 +1057,27 @@
           closeFlightModal();
           saveAll();
         }
+
         function openAddModal() {
             if (isFlightDay.value && currentTab.value === '行程') openFlightModal('new');
             else if (currentTab.value === '行程') openItineraryModal();
             else if (currentTab.value === '購物') openShoppingModal();
             else if (currentTab.value === '資訊') openInfoModal();
             else if (currentTab.value === '行前') addPreNote(); 
-            else if (currentTab.value === '記帳') openExpenseModal(null); 
+            else if (currentTab.value === '記帳') openExpenseModal(null);
         }
 
-        // Shopping
+        // Shopping Actions
         function openShoppingModal(item = null) {
           Object.assign(newShoppingItem, { id: null, name: '', imageURL: '', isDone: false });
           tempUploadPreview.shopping = null;
           pendingUploadFiles.shopping = null;
           uploadStatus.shopping = '';
-
           if (item) Object.assign(newShoppingItem, deepClone(item));
           shoppingModalOpen.value = true;
         }
-        function closeShoppingModal() {
-          shoppingModalOpen.value = false;
-        }
+        function closeShoppingModal() { shoppingModalOpen.value = false; }
+        
         async function saveShoppingItem() {
           if (!newShoppingItem.name.trim()) return;
           if (pendingUploadFiles.shopping) {
@@ -1109,11 +1085,8 @@
               uploadStatus.shopping = '正在上傳...';
               const uploadedUrl = await uploadFileToSupabase(pendingUploadFiles.shopping);
               isUploading.value = false;
-              if (uploadedUrl) {
-                  newShoppingItem.imageURL = uploadedUrl;
-              }
+              if (uploadedUrl) newShoppingItem.imageURL = uploadedUrl;
           }
-
           const itemToSave = { ...deepClone(newShoppingItem), id: newShoppingItem.id || generateId() };
           const index = shoppingList.value.findIndex(i => i.id === itemToSave.id);
           if (index !== -1) shoppingList.value.splice(index, 1, itemToSave);
@@ -1123,28 +1096,21 @@
         }
         function removeShoppingItem(idToRemove) {
           if (!confirm('確定刪除此購物項目嗎？')) return;
-          const index = shoppingList.value.findIndex(i => i.id === idToRemove);
-          if (index !== -1) {
-            shoppingList.value.splice(index, 1);
-            saveAll();
-          }
+          shoppingList.value = shoppingList.value.filter(i => i.id !== idToRemove);
+          saveAll();
         }
 
-        // Info
-        const infoModalOpen = ref(false);
-        const newInfoItem = reactive({ id: null, title: '', note: '', isDone: false, imageURL: '' });
+        // Info Actions
         function openInfoModal(item = null) {
           Object.assign(newInfoItem, { id: null, title: '', note: '', isDone: false, imageURL: '' });
           tempUploadPreview.info = null;
           pendingUploadFiles.info = null;
           uploadStatus.info = '';
-
           if (item) Object.assign(newInfoItem, deepClone(item));
           infoModalOpen.value = true;
         }
-        function closeInfoModal() {
-          infoModalOpen.value = false;
-        }
+        function closeInfoModal() { infoModalOpen.value = false; }
+        
         async function saveInfoItem() {
           if (!newInfoItem.title.trim()) return;
           if (pendingUploadFiles.info) {
@@ -1152,11 +1118,8 @@
               uploadStatus.info = '正在上傳...';
               const uploadedUrl = await uploadFileToSupabase(pendingUploadFiles.info);
               isUploading.value = false;
-              if (uploadedUrl) {
-                  newInfoItem.imageURL = uploadedUrl;
-              }
+              if (uploadedUrl) newInfoItem.imageURL = uploadedUrl;
           }
-
           const itemToSave = { ...deepClone(newInfoItem), id: newInfoItem.id || generateId() };
           const index = infoList.value.findIndex(i => i.id === itemToSave.id);
           if (index !== -1) infoList.value.splice(index, 1, itemToSave);
@@ -1166,23 +1129,11 @@
         }
         function removeInfo(idToRemove) {
           if (!confirm('確定刪除此資訊項目嗎？')) return;
-          const index = infoList.value.findIndex(i => i.id === idToRemove);
-          if (index !== -1) {
-            infoList.value.splice(index, 1);
-            saveAll();
-          }
+          infoList.value = infoList.value.filter(i => i.id !== idToRemove);
+          saveAll();
         }
 
-        // PRE-TRIP notes
-        const preTripNotes = ref(initializeListWithIds([
-          { name:'兌換台幣', isDone: true },
-          { name:'確認住宿預約單', isDone: false },
-          { name:'購買 SIM 卡', isDone: false },
-          { name:'護照影本備份', isDone: true }
-        ]));
-        const newPreNote = ref(''); 
-        const preNoteModalOpen = ref(false);
-        const editingPreNote = reactive({ id: null, name: '', isDone: false });
+        // Pre-Trip Note Actions
         function addPreNote() {
             if (!newPreNote.value.trim()) return;
             preTripNotes.value.push({ id: generateId(), name: newPreNote.value.trim(), isDone: false });
@@ -1196,74 +1147,47 @@
         }
         function togglePreNoteDone(id) {
             const note = preTripNotes.value.find(n => n.id === id);
-            if (note) {
-                note.isDone = !note.isDone;
-                saveAll();
-            }
+            if (note) { note.isDone = !note.isDone; saveAll(); }
         }
         function editPreNote(note) {
             Object.assign(editingPreNote, deepClone(note));
             preNoteModalOpen.value = true;
         }
-        function closePreNoteModal() {
-            preNoteModalOpen.value = false;
-        }
+        function closePreNoteModal() { preNoteModalOpen.value = false; }
         function savePreNoteEdit() {
             if (!editingPreNote.name.trim()) return;
             const index = preTripNotes.value.findIndex(n => n.id === editingPreNote.id);
-            if (index !== -1) {
-                preTripNotes.value.splice(index, 1, deepClone(editingPreNote));
-            }
+            if (index !== -1) preTripNotes.value.splice(index, 1, deepClone(editingPreNote));
             closePreNoteModal();
             saveAll();
         }
 
-
-        // Expenses
+        // Expense Actions
         function openExpenseModal(item = null) {
             if(item) {
-                // EDIT MODE
+                // Edit
                 let dateVal = '';
                 if(item.date) {
                     const [m, d] = item.date.split('/');
-                    if(m && d) {
-                        dateVal = `2025-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-                    }
+                    if(m && d) dateVal = `2025-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
                 }
-                
                 Object.assign(newExpense, { 
-                    id: item.id,
-                    name: item.name, 
-                    amount: item.amount, 
-                    currency: item.currency, 
-                    category: item.category, 
-                    paymentMethod: item.paymentMethod,
-                    date: dateVal
+                    id: item.id, name: item.name, amount: item.amount, currency: item.currency, 
+                    category: item.category, paymentMethod: item.paymentMethod, date: dateVal
                 });
             } else {
-                // NEW MODE (Auto Date: Today)
+                // New
                 const now = new Date();
-                const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-                
                 Object.assign(newExpense, { 
-                    id: null,
-                    name:'', 
-                    amount:null, 
-                    currency:'TWD', 
-                    category:'餐飲', 
-                    paymentMethod: 'cash',
-                    date: todayStr 
+                    id: null, name:'', amount:null, currency:'TWD', category:'餐飲', 
+                    paymentMethod: 'cash', date: now.toISOString().split('T')[0]
                 });
             }
             expenseModalOpen.value = true;
         }
-        function closeExpenseModal() {
-            expenseModalOpen.value = false;
-        }
+        function closeExpenseModal() { expenseModalOpen.value = false; }
         function saveExpense(){
           if (!newExpense.name.trim() || !newExpense.amount) return;
-          
-          // Format date back to "M/D"
           let dateString = '';
           if (newExpense.date) {
              const [y, m, d] = newExpense.date.split('-');
@@ -1272,7 +1196,6 @@
              const dObj = new Date();
              dateString = `${dObj.getMonth() + 1}/${dObj.getDate()}`;
           }
-
           const itemToSave = {
             id: newExpense.id || generateId(),
             name: newExpense.name.trim(),
@@ -1283,14 +1206,12 @@
             date: dateString,
             isDone: false,
           };
-          
           if (newExpense.id) {
               const index = expenses.value.findIndex(e => e.id === newExpense.id);
               if (index !== -1) expenses.value.splice(index, 1, itemToSave);
           } else {
               expenses.value.unshift(itemToSave);
           }
-          
           closeExpenseModal();
           saveAll();
         }
@@ -1300,8 +1221,7 @@
           saveAll();
         }
 
-        // --- CLOUD SYNC ---
-        const TRIP_ID = 'taipei_trip2025';
+        // --- Cloud Sync ---
         let isRemoteUpdate = false;
         let debounceTimer = null;
 
@@ -1327,15 +1247,14 @@
           }
           if (data.preTripNotes) preTripNotes.value = initializeListWithIds(data.preTripNotes);
           if (data.shoppingList) shoppingList.value = initializeListWithIds(data.shoppingList);
-          
           if (data.expenses) {
               expenses.value = initializeListWithIds(data.expenses).map(e => ({
-                  ...e,
-                  paymentMethod: e.paymentMethod || 'cash'
+                  ...e, paymentMethod: e.paymentMethod || 'cash'
               }));
           }
           if (data.infoList) infoList.value = initializeListWithIds(data.infoList);
           if (data.flights) flights.value = initializeListWithIds(data.flights);
+          
           if (syncState.value === 'loading' || syncState.value === 'error') {
             syncState.value = 'synced';
           }
@@ -1350,10 +1269,7 @@
             debounceTimer = setTimeout(async () => {
                 const payload = getAppPayload();
                 try {
-                    const { error } = await supabaseClient
-                        .from('trip_data')
-                        .upsert({ id: TRIP_ID, content: payload });
-
+                    const { error } = await supabaseClient.from('trip_data').upsert({ id: TRIP_ID, content: payload });
                     if (error) throw error;
                     syncState.value = 'synced';
                 } catch (e) {
@@ -1368,13 +1284,8 @@
           if(!isAuto) syncState.value = 'loading';
           
           try {
-            const { data, error } = await supabaseClient
-              .from('trip_data')
-              .select('content')
-              .eq('id', TRIP_ID)
-              .single();
+            const { data, error } = await supabaseClient.from('trip_data').select('content').eq('id', TRIP_ID).single();
             if (error) throw error;
-
             if (data && data.content && JSON.stringify(data.content) !== JSON.stringify(getAppPayload())) {
                 applyCloudData(data.content);
                 syncState.value = 'synced';
@@ -1387,25 +1298,16 @@
           }
         }
         
-        async function forceReloadCloud() {
-             await fetchCloudData(false);
-        }
+        async function forceReloadCloud() { await fetchCloudData(false); }
 
-        // --- EXTERNAL DATA FETCHING ---
+        // --- Fetch APIs ---
         async function fetchRate(){
-          const API_URL = 'https://open.er-api.com/v6/latest/TWD';
           try {
-            const res = await fetch(API_URL);
+            const res = await fetch('https://open.er-api.com/v6/latest/TWD');
             if (!res.ok){ rate.value = null; return; }
             const data = await res.json();
             if (data && data.rates && data.rates.HKD){
-              if (data.base === 'TWD') {
-                rate.value = (data.rates.HKD).toFixed(3);
-              } else if (data.rates && data.rates.HKD && data.rates.TWD) {
-                rate.value = (1 / data.rates.TWD * data.rates.HKD).toFixed(3);
-              } else {
-                rate.value = (data.rates.HKD || null);
-              }
+              rate.value = (data.rates.HKD).toFixed(3);
               lastRateUpdate.value = new Date().toISOString();
             }
           } catch(e){
@@ -1415,20 +1317,31 @@
         }
 
         async function fetchWeather(){
+            // Lat/Lon for Taipei
           try {
-            const lat = 25.0330, lon = 121.5654;
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=precipitation_probability&timezone=Asia%2FTaipei`;
+            const url = 'https://api.open-meteo.com/v1/forecast?latitude=25.0330&longitude=121.5654&current_weather=true&hourly=precipitation_probability&timezone=Asia%2FTaipei';
             const res = await fetch(url);
             const data = await res.json();
             if (data && data.current_weather){
               weather.temp = Math.round(data.current_weather.temperature);
               weather.code = data.current_weather.weathercode || 0;
-              weather.desc = describeWeather(weather.code);
+              
+              // Simple map for description
+              const code = weather.code;
+              if (code >= 95) weather.desc = '雷陣雨';
+              else if (code >= 80) weather.desc = '陣雨';
+              else if (code >= 60) weather.desc = '小雨';
+              else if (code >= 50) weather.desc = '毛毛雨';
+              else if (code >= 40) weather.desc = '有霧';
+              else if (code >= 30) weather.desc = '陰天';
+              else if (code >= 20) weather.desc = '局部多雲';
+              else if (code >= 10) weather.desc = '晴時多雲';
+              else weather.desc = '晴天';
+
               if (data.hourly && data.hourly.precipitation_probability){
                 const nowTime = data.current_weather.time.slice(0, 13);
                 const nowIdx = data.hourly.time.findIndex(t => t.startsWith(nowTime));
-                const prob = (nowIdx >= 0) ? data.hourly.precipitation_probability[nowIdx] : (data.hourly.precipitation_probability[0] || 0);
-                weather.rain = Math.round(prob);
+                weather.rain = Math.round((nowIdx >= 0) ? data.hourly.precipitation_probability[nowIdx] : (data.hourly.precipitation_probability[0] || 0));
               } else weather.rain = 0;
             }
           } catch(e){
@@ -1438,8 +1351,7 @@
           }
         }
 
-
-        // --- LIFECYCLE ---
+        // --- Lifecycle ---
         onMounted(() => {
           fetchCloudData(false);
           fetchRate();
@@ -1449,7 +1361,9 @@
           setInterval(fetchWeather, 10*60*1000);
           setInterval(() => { fetchCloudData(true); }, 15000);
         });
+
         watch([itinerary, preTripNotes, shoppingList, expenses, infoList, flights], () => { saveAll(); }, { deep:true });
+
         return {
           appVersion, syncState, syncStatusText, forceReloadCloud,
           currentTab, days, selectedDay, selectDay, isFlightDay,
@@ -1466,7 +1380,7 @@
           openAddModal, flightModalOpen, newFlight, openFlightModal, closeFlightModal, saveFlight,
           handleFileUpload, uploadStatus, tempUploadPreview, isUploading,
           imageViewer, openImageViewer,
-          formatNumber // Export for use in Template
+          formatNumber 
         };
       }
     }).mount('#app');
