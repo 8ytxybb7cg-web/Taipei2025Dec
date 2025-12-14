@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <title>eMenu Taipei v3.11</title>
+  <title>Travel Sync v3.12</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -12,15 +12,14 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
-    /* --- iOS 26 System Variables --- */
+    /* --- iOS 26 System Variables (Enhanced) --- */
     :root {
       --ios-bg: #F2F2F7;
       --ios-card-bg: rgba(255, 255, 255, 0.65);
       --ios-card-border: rgba(255, 255, 255, 0.4);
-      --ios-primary: #007AFF; /* Sky Blue */
-      --ios-primary-active: #0062cc;
-      --ios-text-primary: #000000;
-      --ios-text-secondary: #8E8E93;
+      --ios-primary: #007AFF;
+      --ios-danger: #FF3B30;
+      --ios-warning: #FFCC00;
       --glass-blur: blur(25px);
       --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
@@ -37,7 +36,7 @@
       -moz-osx-font-smoothing: grayscale;
       background-color: #000;
       margin: 0;
-      color: var(--ios-text-primary);
+      color: #000;
       overflow: hidden;
     }
 
@@ -75,20 +74,19 @@
       overflow: hidden;
     }
 
-    /* iOS Premium Dark Glass Card (For Flights & Expenses) */
+    /* iOS Premium Dark Glass Card (For Flights & Expenses Summary) */
     .ios-card-dark-glass {
-      background: rgba(28, 28, 30, 0.75); /* Deep dark gray base */
+      background: rgba(28, 28, 30, 0.80);
       backdrop-filter: blur(40px);
       -webkit-backdrop-filter: blur(40px);
-      border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle white border */
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 22px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       color: white;
       position: relative;
       overflow: hidden;
     }
     
-    /* Internal Gradient for Dark Glass */
     .dark-glass-gradient {
         position: absolute;
         top: -50%;
@@ -100,7 +98,7 @@
         z-index: 0;
     }
 
-    /* List Items */
+    /* List Items (Unified) */
     .ios-list-item {
       background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(15px);
@@ -117,6 +115,30 @@
       background: rgba(255, 255, 255, 0.95);
       transform: scale(0.98);
     }
+
+    /* Action Buttons (Unified) */
+    .action-btn-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+        padding-left: 8px;
+        opacity: 0.4;
+        transition: opacity 0.2s;
+    }
+    .ios-list-item:hover .action-btn-group,
+    .action-btn-group:active {
+        opacity: 1;
+    }
+    .icon-btn {
+        padding: 8px;
+        color: #8E8E93;
+        transition: color 0.2s;
+        border-radius: 50%;
+    }
+    .icon-btn:hover { background: rgba(0,0,0,0.05); }
+    .icon-btn.edit:hover { color: var(--ios-primary); }
+    .icon-btn.delete:hover { color: var(--ios-danger); }
 
     /* Inputs */
     .ios-input {
@@ -135,7 +157,7 @@
     }
     .ios-input::placeholder { color: #8E8E93; }
 
-    /* Modals (System Sheet Style) */
+    /* Modals */
     .modal-backdrop {
       background: rgba(0, 0, 0, 0.4);
       backdrop-filter: blur(5px);
@@ -193,8 +215,6 @@
       align-items: center;
       justify-content: center;
     }
-    .btn-ios-cancel:active { opacity: 0.6; }
-
     .btn-ios-primary {
       flex: 1;
       height: 50px;
@@ -238,12 +258,11 @@
       transform: translateY(-2px);
     }
 
-    .task-done { text-decoration: line-through; color: var(--ios-text-secondary); opacity: 0.7; }
+    .task-done { text-decoration: line-through; color: #8E8E93; opacity: 0.7; }
     
     .rotate-icon { animation: spin 1s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* Transitions */
     .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
     .fade-enter-from, .fade-leave-to { opacity: 0; }
 
@@ -267,7 +286,7 @@
              eMenu Taipei
           </h1>
           <div class="flex items-center gap-3 mt-1 pl-1">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest">{{ appVersion }}</span>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest">{{ appVersion.split('-')[1] }}</span>
             
             <div class="flex items-center gap-2 bg-white/50 backdrop-blur-md px-2 py-0.5 rounded-full border border-black/5">
                 <div class="w-1.5 h-1.5 rounded-full transition-colors duration-300"
@@ -285,10 +304,13 @@
         </div>
       
         <div class="text-right">
-           <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">
-             <span class="text-[#007AFF]">即時匯率</span> HKD/TWD
+           <div class="flex flex-col items-end">
+              <span class="text-[10px] font-bold text-[#007AFF] uppercase tracking-wide mb-0.5">即時匯率</span>
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">HKD / TWD</span>
            </div>
-           <div class="text-xl font-bold text-gray-800 tracking-tight font-mono">{{ formattedRate }}</div>
+           <div class="text-xl font-bold text-gray-800 tracking-tight font-mono leading-none">
+             {{ formattedRate }}
+           </div>
         </div>
       </div>
 
@@ -333,8 +355,13 @@
           <div class="mt-4 flex items-center justify-between border-t border-gray-400/20 pt-3">
              <div class="flex items-center gap-2">
                  <span class="text-sm font-semibold text-gray-700">{{ weather.desc }}</span>
+                 
                  <div v-if="weather.rain > 0" class="flex items-center gap-1 text-xs font-bold text-[#007AFF] bg-blue-50/80 px-2 py-0.5 rounded-full">
                     <i class="ph ph-drop-fill"></i> {{ weather.rain }}%
+                 </div>
+                 
+                 <div v-if="weather.warning" class="flex items-center gap-1 text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 animate-pulse">
+                    <i class="ph ph-warning-fill"></i> {{ weather.warning }}
                  </div>
              </div>
              <div class="flex gap-3 text-sm font-medium">
@@ -346,9 +373,8 @@
 
         <transition name="fade">
           <div v-if="shouldShowFlightCard" class="ios-card-dark-glass p-5">
-              
               <div class="dark-glass-gradient"></div>
-
+              
               <button @click.stop="openFlightModal(activeFlight.id)" class="absolute top-4 right-4 z-20 text-white/50 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition backdrop-blur-md">
                   <i class="ph ph-pencil-simple text-sm"></i>
               </button>
@@ -445,9 +471,9 @@
                   </div>
                    <span class="font-medium text-[16px] truncate" :class="{'task-done': note.isDone, 'text-gray-900': !note.isDone}">{{ note.name }}</span>
                 </div>
-                <div class="flex items-center gap-1 pl-2 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-                   <button @click.stop="editPreNote(note)" class="text-gray-500 p-2"><i class="ph ph-pencil-simple text-lg"></i></button>
-                   <button @click.stop="removePreNote(note.id)" class="text-gray-500 hover:text-red-500 p-2"><i class="ph ph-trash text-lg"></i></button>
+                <div class="action-btn-group">
+                   <button @click.stop="editPreNote(note)" class="icon-btn edit"><i class="ph ph-pencil-simple text-lg"></i></button>
+                   <button @click.stop="removePreNote(note.id)" class="icon-btn delete"><i class="ph ph-trash text-lg"></i></button>
                 </div>
                </li>
             </ul>
@@ -485,9 +511,9 @@
                             <div v-if="it.note" class="text-sm text-gray-500 mt-1">{{ it.note }}</div>
                         </div>
                         
-                        <div class="flex flex-col gap-1 pl-2">
-                             <button @click.stop="openItineraryModal(it)" class="text-gray-300 hover:text-[#007AFF] p-1.5"><i class="ph ph-pencil-simple text-lg"></i></button>
-                             <button @click.stop="removeItineraryItem(it.id)" class="text-gray-300 hover:text-red-500 p-1.5"><i class="ph ph-trash text-lg"></i></button>
+                        <div class="action-btn-group flex-col !gap-0">
+                             <button @click.stop="openItineraryModal(it)" class="icon-btn edit"><i class="ph ph-pencil-simple text-lg"></i></button>
+                             <button @click.stop="removeItineraryItem(it.id)" class="icon-btn delete"><i class="ph ph-trash text-lg"></i></button>
                         </div>
                     </div>
                      
@@ -534,9 +560,9 @@
                     </div>
                   </div>
                 </div>
-                <div class="flex items-center gap-1 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-                    <button @click.stop="openShoppingModal(item)" class="text-gray-500 p-2"><i class="ph ph-pencil-simple text-lg"></i></button>
-                    <button class="text-gray-500 hover:text-red-500 p-2" @click="removeShoppingItem(item.id)"><i class="ph ph-trash text-lg"></i></button>
+                <div class="action-btn-group">
+                    <button @click.stop="openShoppingModal(item)" class="icon-btn edit"><i class="ph ph-pencil-simple text-lg"></i></button>
+                    <button class="icon-btn delete" @click="removeShoppingItem(item.id)"><i class="ph ph-trash text-lg"></i></button>
                 </div>
               </li>
             </ul>
@@ -548,7 +574,6 @@
 
           <div v-if="currentTab === '記帳'">
               <div class="ios-card-dark-glass p-6 mb-6">
-                 
                  <div class="dark-glass-gradient"></div>
 
                  <div class="absolute top-4 right-4 z-10">
@@ -601,9 +626,9 @@
                          <div class="text-right">
                            <div class="font-bold text-gray-900 text-[16px]">{{ e.currency }} <span class="text-base">{{ formatNumber(e.amount, 0) }}</span></div>
                         </div>
-                        <div class="flex items-center gap-1 pl-2 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-                             <button @click="openExpenseModal(e)" class="p-2 text-gray-500"><i class="ph ph-pencil-simple text-lg"></i></button>
-                             <button @click="removeExpense(e.id)" class="p-2 text-gray-500 hover:text-red-500"><i class="ph ph-trash text-lg"></i></button>
+                        <div class="action-btn-group">
+                             <button @click="openExpenseModal(e)" class="icon-btn edit"><i class="ph ph-pencil-simple text-lg"></i></button>
+                             <button @click="removeExpense(e.id)" class="icon-btn delete"><i class="ph ph-trash text-lg"></i></button>
                         </div>
                     </div>
                 </div>
@@ -629,9 +654,9 @@
                     </div>
                    </div>
                 </div>
-                 <div class="flex items-center gap-1 pl-2 flex-shrink-0 opacity-40 hover:opacity-100 transition-opacity">
-                    <button @click.stop="openInfoModal(it)" class="text-gray-500 p-2"><i class="ph ph-pencil-simple text-lg"></i></button>
-                    <button class="text-gray-500 hover:text-red-500 p-2" @click="removeInfo(it.id)"><i class="ph ph-trash text-lg"></i></button>
+                 <div class="action-btn-group">
+                    <button @click.stop="openInfoModal(it)" class="icon-btn edit"><i class="ph ph-pencil-simple text-lg"></i></button>
+                    <button class="icon-btn delete" @click="removeInfo(it.id)"><i class="ph ph-trash text-lg"></i></button>
                  </div>
               </li>
              </ul>
@@ -641,8 +666,9 @@
           </div>
       </div>
 
-      <div class="h-32 flex items-end justify-center pb-4">
-         <div class="text-[10px] font-mono text-gray-400/50">Travel Sync System · Build {{ appVersion }}</div>
+      <div class="flex flex-col items-center justify-end pb-4 h-32 opacity-30 select-none pointer-events-none">
+          <div class="text-[10px] font-bold uppercase tracking-widest">Travel Sync System</div>
+          <div class="text-[9px] font-mono mt-0.5">Build {{ appVersion }}</div>
       </div>
     </main>
 
@@ -941,7 +967,7 @@
 
     createApp({
       setup() {
-        const appVersion = ref('v3.11'); // Version Updated
+        const appVersion = ref('v251214-3.12'); // Version Updated
         const currentTab = ref('行程');
         const selectedDay = ref(0); 
 
@@ -1054,7 +1080,7 @@
 
         // --- Logic ---
         const totalExpense = computed(() => {
-          const rateVal = Number(rate.value) || DEFAULT_RATE;
+          const rateVal = 1 / (Number(rate.value) || 4); // Convert back for logic
           let total = 0, credit = 0, cash = 0;
           expenses.value.forEach(e => {
              let amount = Number(e.amount) || 0;
@@ -1075,7 +1101,7 @@
         });
 
         // --- Weather & Rate ---
-        const weather = reactive({ temp:'--', desc:'載入中', rain:0, code:0, min:'--', max:'--' });
+        const weather = reactive({ temp:'--', desc:'載入中', rain:0, code:0, min:'--', max:'--', warning: null });
         const weatherIconClass = computed(() => {
             const c = weather.code;
             if (c >= 95) return 'ph ph-cloud-lightning-rain';
@@ -1300,13 +1326,20 @@
 
         async function fetchRate() {
             try {
+                // Source: open.er-api.com
+                // Logic: API returns 1 TWD = 0.24 HKD.
+                // Display: 1 HKD = (1/0.24) = 4.15 TWD
                 const res = await fetch('https://open.er-api.com/v6/latest/TWD');
                 const d = await res.json();
-                if(d?.rates?.HKD) rate.value = d.rates.HKD.toFixed(3);
+                if(d?.rates?.HKD) {
+                    const hkdToTwd = 1 / d.rates.HKD;
+                    rate.value = hkdToTwd.toFixed(2);
+                }
             } catch(e) {}
         }
         async function fetchWeather() {
              try {
+                // Source: Open-Meteo
                 const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.0330&longitude=121.5654&current_weather=true&hourly=precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FTaipei');
                 const d = await res.json();
                 if(d.current_weather) {
@@ -1314,9 +1347,12 @@
                     weather.code = d.current_weather.weathercode;
                     
                     const c = weather.code;
-                    if(c >= 95) weather.desc = '雷陣雨';
+                    // Reset Warning
+                    weather.warning = null;
+
+                    if(c >= 95) { weather.desc = '雷陣雨'; weather.warning = '雷雨特報'; }
                     else if(c >= 80) weather.desc = '陣雨';
-                    else if(c >= 60) weather.desc = '小雨';
+                    else if(c >= 60) { weather.desc = '雨天'; if(c >= 63) weather.warning = '大雨特報'; }
                     else if(c >= 50) weather.desc = '毛毛雨';
                     else if(c >= 45) weather.desc = '有霧';
                     else if(c >= 30) weather.desc = '多雲';
