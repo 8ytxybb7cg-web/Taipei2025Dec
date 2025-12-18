@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <title>Travel Sync v4.1</title>
+  <title>Travel Sync v4.2</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -36,7 +36,7 @@
       margin: 0;
       color: #000;
       overflow: hidden;
-      user-select: none; /* Prevent text selection for better drag experience */
+      user-select: none;
     }
 
     /* Scrollable Container */
@@ -93,10 +93,10 @@
       background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(15px);
       border-radius: 18px;
-      margin-bottom: 10px;
-      padding: 16px;
+      margin-bottom: 8px; /* Reduced from 10px */
+      padding: 14px; /* Reduced from 16px for compactness */
       display: flex;
-      align-items: center; /* Default center, but overrides are common */
+      align-items: center; 
       justify-content: space-between;
       transition: background 0.2s, transform 0.2s;
       border: 1px solid rgba(255,255,255,0.5);
@@ -230,17 +230,17 @@
           </div>
         </div>
       
-        <div class="flex flex-col items-end">
-           <span class="text-[10px] font-bold text-[#007AFF] uppercase tracking-wide mb-1">即時匯率 (含2%手續費)</span>
+        <div class="flex flex-col items-end text-right">
+           <span class="text-[10px] font-bold text-[#007AFF] uppercase tracking-wide mb-0.5">即時匯率</span>
+           <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5">HKD / TWD</span>
            
-           <div class="bg-white/50 backdrop-blur-md border border-white/40 shadow-sm rounded-xl px-3 py-1.5 min-w-[80px] text-center">
-               <div class="text-xl font-bold text-gray-800 tracking-tight font-mono leading-none">
-                 {{ formattedRate }}
-               </div>
-               <div class="text-[9px] font-medium text-gray-400/80 mt-0.5 font-mono tracking-tight">HKD / TWD</div>
+           <div class="text-2xl font-bold text-gray-800 tracking-tight font-mono leading-none my-0.5">
+             {{ formattedRate }}
            </div>
+           
+           <div class="text-[9px] font-medium text-gray-500 mb-0.5 font-mono tracking-tight">(含2%手續費)</div>
 
-           <div class="text-[9px] font-medium text-gray-400/80 mt-1 font-mono tracking-tight">
+           <div class="text-[9px] font-medium text-gray-400/80 font-mono tracking-tight">
                 更新：{{ lastRateUpdateLabel }}
            </div>
         </div>
@@ -448,7 +448,7 @@
             <h3 class="ml-2 mb-3 text-xs font-bold text-gray-500 uppercase tracking-widest">準備清單</h3>
             <ul class="space-y-2.5" id="sortable-pre-notes">
                <li v-for="(note, i) in preTripNotes" :key="note.id" :data-id="note.id" class="ios-list-item">
-                 <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2">
+                 <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2 p-2">
                      <i class="ph ph-dots-six-vertical text-xl"></i>
                  </div>
                  <div class="flex items-center gap-3.5 flex-1 min-w-0">
@@ -480,25 +480,25 @@
          </div>
 
          <div v-if="currentTab === '行程'">
-            <div class="relative pl-4 border-l-2 border-gray-300/50 ml-3 space-y-6 py-2" id="sortable-itinerary">
+            <div class="relative pl-4 border-l-2 border-gray-300/50 ml-3 space-y-3 py-2" id="sortable-itinerary">
                <div v-for="(it, idx) in sortedItinerary" :key="it.id" :data-id="it.id"
                   @click="showLocationOnMap(it)"
                   class="relative group cursor-pointer">
                
                 <div class="absolute -left-[23px] top-1 w-3.5 h-3.5 rounded-full bg-white border-[3px] border-gray-300 group-hover:border-[#007AFF] transition-colors z-10 shadow-sm"></div>
                 
-                <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/60 shadow-sm transition-all active:scale-[0.99] active:bg-white/90">
+                <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-3 border border-white/60 shadow-sm transition-all active:scale-[0.99] active:bg-white/90">
                     <div class="flex justify-between items-start">
                       <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-sm font-bold text-[#007AFF] font-mono bg-blue-50/80 px-1.5 rounded">{{ it.time || '--:--' }}</span>
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="text-xs font-bold text-[#007AFF] font-mono bg-blue-50/80 px-1.5 rounded">{{ it.time || '--:--' }}</span>
                             </div>
-                            <div class="font-bold text-[17px] text-gray-900 leading-snug">{{ it.title }}</div>
-                            <div v-if="it.note" class="text-sm text-gray-500 mt-1">{{ it.note }}</div>
+                            <div class="font-bold text-[16px] text-gray-900 leading-snug">{{ it.title }}</div>
+                            <div v-if="it.note" class="text-xs text-gray-500 mt-0.5">{{ it.note }}</div>
                       </div>
                       
                       <div class="flex flex-col items-center ml-2">
-                         <div class="drag-handle text-gray-300 hover:text-gray-500 mb-2 p-1">
+                         <div class="drag-handle text-gray-300 hover:text-gray-500 mb-1 p-1">
                              <i class="ph ph-dots-six-vertical text-xl"></i>
                          </div>
                          <div class="action-btn-group flex-col !gap-0">
@@ -508,7 +508,7 @@
                       </div>
                     </div>
              
-                     <div v-if="(it.address || '').trim() !== ''" class="mt-2.5 flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-[#007AFF] transition-colors">
+                     <div v-if="(it.address || '').trim() !== ''" class="mt-2 flex items-center gap-1.5 text-[10px] text-gray-400 group-hover:text-[#007AFF] transition-colors">
                         <i class="ph ph-map-pin-line"></i>
                         <span class="font-medium">查看地圖</span>
                       </div>
@@ -537,7 +537,7 @@
                   class="ios-list-item"
                   :class="item.imageURL ? '!items-start' : '!items-center'">
                 
-                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2" :class="item.imageURL ? 'mt-2' : ''">
+                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2 p-1" :class="item.imageURL ? 'mt-2' : ''">
                      <i class="ph ph-dots-six-vertical text-xl"></i>
                 </div>
                 
@@ -615,7 +615,7 @@
             <div class="space-y-2 pb-10" id="sortable-expenses">
                <div v-for="(e, i) in filteredExpenses" :key="e.id" :data-id="e.id" class="ios-list-item !items-center !py-3">
                    
-                    <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2">
+                    <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2 p-1">
                          <i class="ph ph-dots-six-vertical text-xl"></i>
                     </div>
 
@@ -654,7 +654,7 @@
                    class="ios-list-item !p-5"
                    :class="it.imageURL ? '!items-start' : '!items-center'">
                 
-                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2" :class="it.imageURL ? 'mt-1' : ''">
+                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2 p-1" :class="it.imageURL ? 'mt-1' : ''">
                      <i class="ph ph-dots-six-vertical text-xl"></i>
                 </div>
 
@@ -977,7 +977,7 @@
     
     createApp({
       setup() {
-        const appVersion = ref('v251219-4.1'); // Version Updated
+        const appVersion = ref('v251219-4.2'); // Version Updated
         const currentTab = ref('準備'); 
         const selectedDay = ref(0); 
 
@@ -1117,9 +1117,6 @@
             let list = expenses.value;
             if (expenseFilter.value === 'credit') list = list.filter(e => e.paymentMethod === 'credit_card');
             else if (expenseFilter.value === 'cash') list = list.filter(e => e.paymentMethod !== 'credit_card');
-            
-            // Note: Auto-sort removed to allow manual drag & drop sorting.
-            // Items are now displayed in the order they exist in the array (or dragged to).
             return list; 
         });
 
@@ -1144,7 +1141,7 @@
         function selectDay(i){ 
             selectedDay.value = i; 
             selectedMapLocation.value = null;
-            nextTick(() => initSortable('sortable-itinerary', itinerary[i]));
+            nextTick(() => setTimeout(() => initSortable('sortable-itinerary', itinerary[i]), 50));
         }
 
         // --- Actions ---
@@ -1302,6 +1299,9 @@
             const el = document.getElementById(elementId);
             if (!el) return;
             
+            // Destroy potential old instances to prevent duplication bugs (optional but safer)
+            // Note: Sortable doesn't have a simple destroy method on element, but creating new one is usually fine if handled correctly.
+            
             Sortable.create(el, {
                 handle: '.drag-handle',
                 animation: 150,
@@ -1319,12 +1319,15 @@
         
         // Re-bind sortables when tabs change
         watch(currentTab, () => {
+             // Added slight delay to ensure Vue transitions (fade) are complete before attaching Sortable
              nextTick(() => {
-                 if(currentTab.value === '準備') initSortable('sortable-pre-notes', preTripNotes.value);
-                 if(currentTab.value === '行程') initSortable('sortable-itinerary', itinerary[selectedDay.value]);
-                 if(currentTab.value === '購物') initSortable('sortable-shopping', shoppingList.value);
-                 if(currentTab.value === '資訊') initSortable('sortable-info', infoList.value);
-                 if(currentTab.value === '記帳') initSortable('sortable-expenses', expenses.value); // Added Expense Sorting
+                 setTimeout(() => {
+                     if(currentTab.value === '準備') initSortable('sortable-pre-notes', preTripNotes.value);
+                     if(currentTab.value === '行程') initSortable('sortable-itinerary', itinerary[selectedDay.value]);
+                     if(currentTab.value === '購物') initSortable('sortable-shopping', shoppingList.value);
+                     if(currentTab.value === '資訊') initSortable('sortable-info', infoList.value);
+                     if(currentTab.value === '記帳') initSortable('sortable-expenses', expenses.value);
+                 }, 50);
              });
         });
 
@@ -1407,8 +1410,10 @@
             } finally {
                 isFetching = false;
                 nextTick(() => {
-                    if(currentTab.value === '準備') initSortable('sortable-pre-notes', preTripNotes.value);
-                    if(currentTab.value === '行程') initSortable('sortable-itinerary', itinerary[selectedDay.value]);
+                    setTimeout(() => {
+                        if(currentTab.value === '準備') initSortable('sortable-pre-notes', preTripNotes.value);
+                        if(currentTab.value === '行程') initSortable('sortable-itinerary', itinerary[selectedDay.value]);
+                    }, 50);
                 });
             }
         }
