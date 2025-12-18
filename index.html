@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <title>Travel Sync v4.0</title>
+  <title>Travel Sync v4.1</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -96,11 +96,11 @@
       margin-bottom: 10px;
       padding: 16px;
       display: flex;
-      align-items: center;
+      align-items: center; /* Default center, but overrides are common */
       justify-content: space-between;
       transition: background 0.2s, transform 0.2s;
       border: 1px solid rgba(255,255,255,0.5);
-      touch-action: manipulation; /* Improves touch handling */
+      touch-action: manipulation;
     }
     .ios-list-item:active { background: rgba(255, 255, 255, 0.95); transform: scale(0.98); }
 
@@ -230,14 +230,16 @@
           </div>
         </div>
       
-        <div class="text-right">
-           <div class="flex flex-col items-end">
-              <span class="text-[10px] font-bold text-[#007AFF] uppercase tracking-wide mb-0.5">即時匯率 (含手續費)</span>
-              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">HKD / TWD</span>
+        <div class="flex flex-col items-end">
+           <span class="text-[10px] font-bold text-[#007AFF] uppercase tracking-wide mb-1">即時匯率 (含2%手續費)</span>
+           
+           <div class="bg-white/50 backdrop-blur-md border border-white/40 shadow-sm rounded-xl px-3 py-1.5 min-w-[80px] text-center">
+               <div class="text-xl font-bold text-gray-800 tracking-tight font-mono leading-none">
+                 {{ formattedRate }}
+               </div>
+               <div class="text-[9px] font-medium text-gray-400/80 mt-0.5 font-mono tracking-tight">HKD / TWD</div>
            </div>
-           <div class="text-xl font-bold text-gray-800 tracking-tight font-mono leading-none">
-             {{ formattedRate }}
-           </div>
+
            <div class="text-[9px] font-medium text-gray-400/80 mt-1 font-mono tracking-tight">
                 更新：{{ lastRateUpdateLabel }}
            </div>
@@ -531,12 +533,16 @@
         <div v-if="currentTab === '購物'">
             <h3 class="ml-2 mb-3 text-xs font-bold text-gray-500 uppercase tracking-widest">購物清單</h3>
             <ul class="space-y-3" id="sortable-shopping">
-              <li v-for="(item, i) in shoppingList" :key="item.id" :data-id="item.id" class="ios-list-item !items-start">
-                <div class="drag-handle text-gray-300 hover:text-gray-500 mt-2 mr-2">
+              <li v-for="(item, i) in shoppingList" :key="item.id" :data-id="item.id" 
+                  class="ios-list-item"
+                  :class="item.imageURL ? '!items-start' : '!items-center'">
+                
+                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2" :class="item.imageURL ? 'mt-2' : ''">
                      <i class="ph ph-dots-six-vertical text-xl"></i>
                 </div>
-                <div class="flex items-start gap-3.5 flex-1 min-w-0">
-                  <div class="mt-1 cursor-pointer" @click="item.isDone = !item.isDone">
+                
+                <div class="flex gap-3.5 flex-1 min-w-0" :class="item.imageURL ? 'items-start' : 'items-center'">
+                  <div class="cursor-pointer" :class="item.imageURL ? 'mt-1' : ''" @click="item.isDone = !item.isDone">
                     <i class="ph text-2xl transition-all" :class="item.isDone ? 'ph-check-circle-fill text-green-500' : 'ph-circle text-gray-300 hover:text-gray-400'"></i>
                   </div>
                   <div class="flex-1 min-w-0 pt-0.5">
@@ -606,9 +612,13 @@
                 </button>
             </div>
 
-            <div class="space-y-2 pb-10">
-               <div v-for="(e, i) in filteredExpenses" :key="e.id" class="ios-list-item !items-center !py-3">
+            <div class="space-y-2 pb-10" id="sortable-expenses">
+               <div v-for="(e, i) in filteredExpenses" :key="e.id" :data-id="e.id" class="ios-list-item !items-center !py-3">
                    
+                    <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2">
+                         <i class="ph ph-dots-six-vertical text-xl"></i>
+                    </div>
+
                     <div class="flex-1 flex flex-col gap-1.5 min-w-0 pr-2">
                         <div class="flex justify-between items-center">
                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide leading-none mt-0.5">{{ e.date }}</span>
@@ -640,12 +650,16 @@
          <div v-if="currentTab === '資訊'">
             <h3 class="ml-2 mb-3 text-xs font-bold text-gray-500 uppercase tracking-widest">備忘錄</h3>
             <ul class="space-y-3" id="sortable-info">
-               <li v-for="(it, idx) in infoList" :key="it.id" :data-id="it.id" class="ios-list-item !items-start !p-5">
-                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2 mt-1">
+               <li v-for="(it, idx) in infoList" :key="it.id" :data-id="it.id" 
+                   class="ios-list-item !p-5"
+                   :class="it.imageURL ? '!items-start' : '!items-center'">
+                
+                <div class="drag-handle text-gray-300 hover:text-gray-500 mr-2" :class="it.imageURL ? 'mt-1' : ''">
                      <i class="ph ph-dots-six-vertical text-xl"></i>
                 </div>
-                <div class="flex items-start gap-3 flex-1 min-w-0">
-                  <div class="mt-1 cursor-pointer" @click="it.isDone = !it.isDone">
+
+                <div class="flex gap-3 flex-1 min-w-0" :class="it.imageURL ? 'items-start' : 'items-center'">
+                  <div class="cursor-pointer" :class="it.imageURL ? 'mt-1' : ''" @click="it.isDone = !it.isDone">
                       <i class="ph text-2xl" :class="it.isDone ? 'ph-check-circle-fill text-green-500' : 'ph-info text-[#007AFF]'"></i>
                   </div>
                   <div class="flex-1 min-w-0">
@@ -963,14 +977,13 @@
     
     createApp({
       setup() {
-        const appVersion = ref('v251219-4.0'); // Version Updated
-        const currentTab = ref('準備'); // Default (will be updated by Logic)
+        const appVersion = ref('v251219-4.1'); // Version Updated
+        const currentTab = ref('準備'); 
         const selectedDay = ref(0); 
 
         // --- Sync Status & Initialization ---
         const syncState = ref('loading');
         const isInitialized = ref(false); 
-        // Sync Lock: Prevents saving stale data over cloud data
         const lastSyncedAt = ref(0);
 
         const syncStatusText = computed(() => {
@@ -989,11 +1002,7 @@
         
         // --- Data ---
         const itinerary = reactive([[], [], [], []]);
-        const sortedItinerary = computed(() => {
-          // SortableJS modifies array directly, but we do a fallback sort just in case
-          // However, we rely on the array order primarily now.
-          return itinerary[selectedDay.value] || [];
-        });
+        const sortedItinerary = computed(() => itinerary[selectedDay.value] || []);
         
         const selectedMapLocation = ref(null);
         function showLocationOnMap(item) {
@@ -1084,18 +1093,8 @@
         
         // --- Logic ---
         const totalExpense = computed(() => {
-          // Use a default reasonable rate if API fails to prevent Division by Zero
           const currentRate = Number(rate.value) || 4.10; 
-          // Inverse rate: 1 HKD = (1 / currentRate) TWD approximately in value mapping
-          // But actually, expense logic:
-          // Expenses in TWD -> Convert to HKD. HKD = TWD / Rate.
-          // Expenses in HKD -> Keep.
-          // Total in TWD -> HKD * Rate.
-          
-          let totalHKD = 0;
-          let totalTWD = 0;
-          let creditHKD = 0;
-          let cashHKD = 0;
+          let totalHKD = 0; let totalTWD = 0; let creditHKD = 0; let cashHKD = 0;
 
           expenses.value.forEach(e => {
              let amount = Number(e.amount) || 0;
@@ -1103,7 +1102,7 @@
 
              if (e.currency === 'TWD') amountInHKD = amount / currentRate;
              else if (e.currency === 'HKD') amountInHKD = amount;
-             else if (CURRENCY_RATES[e.currency]) amountInHKD = amount / CURRENCY_RATES['USD'] * 7.8; // Rough estimate for others if needed, mostly TWD/HKD here
+             else if (CURRENCY_RATES[e.currency]) amountInHKD = amount / CURRENCY_RATES['USD'] * 7.8; 
 
              totalHKD += amountInHKD;
              if(e.paymentMethod === 'credit_card') creditHKD += amountInHKD;
@@ -1111,22 +1110,17 @@
           });
           
           totalTWD = totalHKD * currentRate;
-          
-          return { 
-              hkd: totalHKD, 
-              twd: totalTWD, 
-              creditHkd: creditHKD, 
-              creditTwd: creditHKD * currentRate, 
-              cashHkd: cashHKD, 
-              cashTwd: cashHKD * currentRate 
-          };
+          return { hkd: totalHKD, twd: totalTWD, creditHkd: creditHKD, creditTwd: creditHKD * currentRate, cashHkd: cashHKD, cashTwd: cashHKD * currentRate };
         });
         
         const filteredExpenses = computed(() => {
             let list = expenses.value;
             if (expenseFilter.value === 'credit') list = list.filter(e => e.paymentMethod === 'credit_card');
             else if (expenseFilter.value === 'cash') list = list.filter(e => e.paymentMethod !== 'credit_card');
-            return [...list].sort((a, b) => (a.date > b.date ? -1 : 1));
+            
+            // Note: Auto-sort removed to allow manual drag & drop sorting.
+            // Items are now displayed in the order they exist in the array (or dragged to).
+            return list; 
         });
 
         // --- Weather & Rate ---
@@ -1150,7 +1144,6 @@
         function selectDay(i){ 
             selectedDay.value = i; 
             selectedMapLocation.value = null;
-            // Re-init sortable for the new day list after DOM update
             nextTick(() => initSortable('sortable-itinerary', itinerary[i]));
         }
 
@@ -1180,12 +1173,9 @@
             } else {
                 target.push(item);
             }
-            // Auto sort by time if new item added (optional, but requested sorting is manual now)
-            // We only sort if it's a NEW item to help user.
             if(!newItineraryItem.id) {
                  target.sort((a, b) => (a.time || '23:59').localeCompare(b.time || '23:59'));
             }
-            
             if (selectedMapLocation.value?.id === item.id) showLocationOnMap(item);
             closeItineraryModal(); saveAll();
         }
@@ -1312,18 +1302,17 @@
             const el = document.getElementById(elementId);
             if (!el) return;
             
-            // Destroy existing instance if needed (simple hack: just create new one, Sortable handles it well usually, but rigorous way is to store instance)
             Sortable.create(el, {
                 handle: '.drag-handle',
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
-                delay: 200, // Long press threshold (ms)
+                delay: 200, 
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
                     const item = listData.splice(evt.oldIndex, 1)[0];
                     listData.splice(evt.newIndex, 0, item);
-                    saveAll(); // Save order immediately
+                    saveAll();
                 }
             });
         }
@@ -1335,10 +1324,11 @@
                  if(currentTab.value === '行程') initSortable('sortable-itinerary', itinerary[selectedDay.value]);
                  if(currentTab.value === '購物') initSortable('sortable-shopping', shoppingList.value);
                  if(currentTab.value === '資訊') initSortable('sortable-info', infoList.value);
+                 if(currentTab.value === '記帳') initSortable('sortable-expenses', expenses.value); // Added Expense Sorting
              });
         });
 
-        // --- Sync Logic (Revised for v4.0) ---
+        // --- Sync Logic ---
         let debounce = null;
         let isFetching = false;
         
@@ -1356,24 +1346,19 @@
 
         function applyData(d) {
             if(!d) return;
-            // Prevent applying old data if we have synced something newer? 
-            // In a simple system, "Server Wins" on fetch is standard.
-            
             if(d.itinerary) d.itinerary.forEach((day, i) => itinerary[i] = initializeListWithIds(day));
             if(d.preTripNotes) preTripNotes.value = initializeListWithIds(d.preTripNotes);
             if(d.shoppingList) shoppingList.value = initializeListWithIds(d.shoppingList);
             if(d.expenses) expenses.value = initializeListWithIds(d.expenses);
             if(d.infoList) infoList.value = initializeListWithIds(d.infoList);
             if(d.flights) flights.value = initializeListWithIds(d.flights);
-            
             lastSyncedAt.value = Date.now();
         }
         
         async function saveAll() {
-            // CRITICAL: Prevent saving if we haven't initialized from cloud yet (avoids overwriting cloud with empty local)
             if(!isInitialized.value) { console.warn("Save blocked: Not initialized"); return; }
             if(isFetching) { console.warn("Save blocked: Fetching in progress"); return; }
-            if(syncState.value === 'error') { /* Allow retry on error state */ }
+            if(syncState.value === 'error') { }
 
             syncState.value = 'saving';
             if(debounce) clearTimeout(debounce);
@@ -1388,11 +1373,10 @@
                     console.error("Save Error", e); 
                     syncState.value = 'error'; 
                 }
-            }, 1000); // 1s Debounce
+            }, 1000); 
         }
 
         async function fetchCloud(isBackgroundSync = false) {
-            // If user is actively typing (saving), don't interrupt with a background fetch unless forced
             if(syncState.value === 'saving' && isBackgroundSync) return;
             
             isFetching = true;
@@ -1404,15 +1388,10 @@
                 if(error && error.code !== 'PGRST116') throw error; 
 
                 if(data?.content) {
-                    // Check timestamp to avoid jitter? For now, Server Always Wins on explicit fetch
-                    // This fixes the "Device A vs Device B" issue -> When I open Device B, it fetches Cloud.
                     const serverData = data.content;
-                    
-                    // Apply Logic
                     applyData(serverData);
                     isInitialized.value = true;
                 } else if (!isBackgroundSync) {
-                     // First time ever
                      if(itinerary[0].length === 0) {
                         itinerary[0] = [
                             { id:1, title: '航班抵達', time:'14:45', note:'第二航廈', address:'', dayIndex: 0 },
@@ -1425,10 +1404,8 @@
             } catch(e) { 
                 console.error("Fetch Error", e);
                 if(!isBackgroundSync) syncState.value = 'error';
-                // Do NOT set isInitialized = true here, keep app in read-only visual mode basically
             } finally {
                 isFetching = false;
-                // Re-init sortables after data load
                 nextTick(() => {
                     if(currentTab.value === '準備') initSortable('sortable-pre-notes', preTripNotes.value);
                     if(currentTab.value === '行程') initSortable('sortable-itinerary', itinerary[selectedDay.value]);
@@ -1443,10 +1420,7 @@
                 const d = await res.json();
                 if(d?.rates?.HKD) {
                     const hkdToTwd = 1 / d.rates.HKD;
-                    // --- GOAL 4: DEDUCT 2% FEE ---
-                    // Example: Real Rate 4.10. Bank gives you 4.02.
-                    // Math: Rate * 0.98
-                    const rateWithFee = hkdToTwd * 0.98;
+                    const rateWithFee = hkdToTwd * 0.98; // 2% Fee
                     rate.value = rateWithFee.toFixed(2);
                     lastRateUpdate.value = new Date(); 
                 }
@@ -1486,58 +1460,41 @@
              } catch(e) {}
         }
 
-        // --- GOAL 5: SMART LOADING ---
         function determineInitialState() {
             const now = new Date();
-            // Hardcoded trip dates for logic
             const tripStart = new Date('2025-12-15T00:00:00');
             const tripEnd = new Date('2025-12-18T23:59:59');
             
-            // 1. Before Trip
             if (now < tripStart) {
                 currentTab.value = '準備';
             }
-            // 2. During Trip
             else if (now >= tripStart && now <= tripEnd) {
                 currentTab.value = '行程';
-                // Determine Day Index
                 const diffTime = Math.abs(now - tripStart);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                // diffDays will be 1 for first day, 2 for second...
-                // index = diffDays - 1;
-                // Clamp it
                 let idx = diffDays - 1;
                 if(idx < 0) idx = 0;
                 if(idx > 3) idx = 3;
                 selectedDay.value = idx;
             } 
-            // 3. After Trip
             else {
                 currentTab.value = '記帳';
             }
         }
 
         onMounted(async () => {
-            // Priority 1: Fetch Data
             await fetchCloud(false); 
-            
-            // Priority 2: Set Tab based on Date (Goal 5)
             determineInitialState();
-
-            // Priority 3: External APIs
             fetchRate(); 
             fetchWeather();
             
             setInterval(fetchRate, 600000); 
             setInterval(fetchWeather, 600000);
             
-            // Background Sync Interval (Keep existing logic but safeguard with isInitialized)
             setInterval(() => {
                 if(isInitialized.value && document.visibilityState === 'visible') fetchCloud(true);
             }, 15000);
             
-            // --- GOAL 2 FIX: Visibility API ---
-            // When user comes back to app, FORCE FETCH to prevent overwriting cloud with old local data
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
                     console.log("App foregrounded: Forcing Sync...");
