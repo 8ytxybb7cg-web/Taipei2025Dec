@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <title>Travel Sync v5.04</title>
+  <title>Travel Sync v5.05</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -13,7 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
   <style>
-    /* --- iOS 17 System Variables --- */
+    /* --- iOS 26 System Variables --- */
     :root {
       --ios-bg: #F2F2F7;
       --ios-card-bg: rgba(255, 255, 255, 0.65);
@@ -703,8 +703,11 @@
                    </div>
 
                    <div class="w-full flex justify-between items-start pl-7">
-                        <div class="font-bold text-gray-900 text-[20px] tracking-tight leading-none text-[#007AFF] flex items-baseline pt-1">
-                            <span class="text-[10px] font-medium text-gray-500 mr-0.5">{{ e.currency }}</span>{{ formatNumber(e.amount, 2) }}
+                        <div class="flex flex-col">
+                            <div class="font-bold text-gray-900 text-[20px] tracking-tight leading-none text-[#007AFF] flex items-baseline pt-1">
+                                <span class="text-[10px] font-medium text-gray-500 mr-0.5">{{ e.currency }}</span>{{ formatNumber(e.amount, 2) }}
+                            </div>
+                            <div v-if="e.exchangeRate" class="text-[10px] text-gray-400 font-mono mt-0.5">Rate: {{ e.exchangeRate.toFixed(2) }}</div>
                         </div>
 
                         <div class="flex-1 flex flex-col items-end text-right min-w-0 ml-3">
@@ -715,7 +718,6 @@
                             <div v-if="e.payer" class="text-[9px] text-gray-400 font-medium mt-0.5">
                                 {{ e.payer }} 代付 <span v-if="e.involved && e.involved.length > 0">({{ e.involved.length }}人分)</span>
                             </div>
-                            <div v-if="e.exchangeRate" class="text-[8px] text-gray-300 font-mono mt-0.5">Rate: {{ e.exchangeRate.toFixed(2) }}</div>
                         </div>
                    </div>
                </div>
@@ -1139,7 +1141,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     createApp({
       setup() {
-        const appVersion = ref('v251219-5.04'); // Version Updated
+        const appVersion = ref('v251219-5.05'); // Version Updated
         const currentTab = ref('準備'); 
         const selectedDay = ref(0); 
 
@@ -1280,7 +1282,6 @@
         }
         function toggleAllParticipants() {
             if(newExpense.involved.length === members.value.length) {
-                // Deselect all except payer if possible, but simplicity: Deselect All
                 newExpense.involved = [];
             } else {
                 newExpense.involved = [...members.value];
@@ -1408,8 +1409,7 @@
 
         const filteredExpenses = computed(() => {
             let list = expenses.value;
-            // Removed date sorting logic here to allow Drag Order to prevail.
-            // The list order in 'expenses.value' IS the truth order.
+            // CRITICAL FIX: Do NOT sort here. Rely on the underlying array order to respect drag & drop.
             
             if (expenseFilter.value === 'credit') list = list.filter(e => e.paymentMethod === 'credit_card');
             else if (expenseFilter.value === 'cash') list = list.filter(e => e.paymentMethod !== 'credit_card');
@@ -1579,6 +1579,7 @@
             } else {
                 // New Item: Insert based on Date (Newest first) logic
                 // This puts it in the correct "block" of dates, but doesn't override manual sorting of other items.
+                // We find the correct chronological insertion point
                 let insertIndex = -1;
                 for(let i=0; i<expenses.value.length; i++) {
                      if (expenses.value[i].date < item.date) {
@@ -1703,7 +1704,9 @@
             if(d.itinerary) d.itinerary.forEach((day, i) => itinerary[i] = initializeListWithIds(day));
             if(d.preTripNotes) preTripNotes.value = initializeListWithIds(d.preTripNotes);
             if(d.shoppingList) shoppingList.value = initializeListWithIds(d.shoppingList);
+            // CRITICAL FIX: Direct assignment without sort to preserve drag order from cloud
             if(d.expenses) expenses.value = initializeListWithIds(d.expenses);
+            
             if(d.infoList) infoList.value = initializeListWithIds(d.infoList);
             if(d.flights) flights.value = initializeListWithIds(d.flights);
             if(d.members && Array.isArray(d.members)) members.value = d.members;
