@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
-  <title>Travel Sync v5.01</title>
+  <title>Travel Sync v5.02</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -185,6 +185,15 @@
     .calc-btn.top-op { background: #D1D1D6; color: black; }
     .calc-btn.top-op:active { background: #A0A0A5; }
 
+    /* Chip Selection for Members */
+    .chip-scroll { display: flex; overflow-x: auto; gap: 8px; padding: 2px; }
+    .chip-btn {
+        flex-shrink: 0; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+        transition: all 0.2s; border: 1px solid rgba(0,0,0,0.1);
+    }
+    .chip-btn.active { background: #007AFF; color: white; border-color: #007AFF; box-shadow: 0 2px 6px rgba(0,122,255,0.3); }
+    .chip-btn.inactive { background: #F2F2F7; color: #8E8E93; }
+
     /* Dock */
     .iphone-dock {
       background: rgba(245, 245, 245, 0.75);
@@ -287,7 +296,6 @@
       </div>
 
       <div v-if="currentTab === '行程'" class="space-y-5 mb-6">
-        
         <div class="ios-card p-5 relative">
           <div class="flex justify-between items-center">
             <div class="flex-1">
@@ -598,8 +606,14 @@
           </div>
 
           <div v-if="currentTab === '記帳'">
-              <div class="ios-card-dark-glass p-6 mb-6">
+              <div class="ios-card-dark-glass p-6 mb-6 relative">
                   <div class="dark-glass-gradient"></div>
+
+                 <div class="absolute top-4 left-4 z-20">
+                    <button @click="memberModalOpen = true" class="bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2 rounded-full backdrop-blur-md transition">
+                        <i class="ph ph-gear text-lg"></i>
+                    </button>
+                 </div>
 
                  <div class="absolute top-4 right-4 z-10">
                     <button @click="openExpenseModal(null)" class="bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2 rounded-full backdrop-blur-md transition">
@@ -629,13 +643,24 @@
                  </div>
              </div>
 
-             <div class="bg-gray-200/50 p-1 rounded-xl flex mb-6 mx-1 backdrop-blur-sm">
-                  <button v-for="f in ['all', 'credit', 'cash']" :key="f"
-                @click="expenseFilter = f"
-                    class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all duration-200"
-                    :class="expenseFilter === f ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-700'">
-                    {{ f === 'all' ? '全部' : (f === 'credit' ? '信用卡' : '現金') }}
-                </button>
+             <div class="bg-gray-200/50 p-1 rounded-xl flex items-center mb-6 mx-1 backdrop-blur-sm overflow-x-auto no-scrollbar gap-2">
+                  <div class="flex-shrink-0 flex gap-0.5 bg-gray-200/50 rounded-lg p-0.5">
+                      <button v-for="f in ['all', 'credit', 'cash']" :key="f"
+                        @click="expenseFilter = f"
+                        class="px-3 py-1.5 text-xs font-bold rounded-md transition-all duration-200"
+                        :class="expenseFilter === f ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-700'">
+                        {{ f === 'all' ? '全部' : (f === 'credit' ? '卡' : '現') }}
+                     </button>
+                  </div>
+
+                  <div v-if="Object.keys(settlement).length > 0" class="flex items-center gap-2 pl-2 border-l border-gray-300/50 pr-2">
+                       <div v-for="(amt, name) in settlement" :key="name" 
+                            v-show="Math.abs(amt) > 1"
+                            class="flex-shrink-0 px-2 py-1 rounded-md text-[10px] font-bold border"
+                            :class="amt > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'">
+                            {{ name }} {{ amt > 0 ? '需收取' : '需支付' }} ${{ formatNumber(Math.abs(amt)) }}
+                       </div>
+                   </div>
             </div>
 
             <div class="space-y-2 pb-10" id="sortable-expenses">
@@ -659,9 +684,12 @@
                                  <span class="text-xs font-medium text-gray-500 mr-0.5 mt-[3px]">{{ e.currency }}</span>{{ formatNumber(e.amount, 2) }}
                              </div>
                              
-                             <div class="flex items-center gap-1 min-w-0 pl-2">
-                                <i class="ph text-gray-300 text-xs" :class="e.paymentMethod === 'credit_card' ? 'ph-credit-card' : 'ph-coins'"></i>
-                                <span class="font-bold text-gray-900 text-[15px] truncate leading-none pb-0.5">{{ e.name }}</span>
+                             <div class="flex flex-col items-end min-w-0 pl-2">
+                                <span class="font-bold text-gray-900 text-[15px] truncate leading-none pb-1">{{ e.name }}</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[9px] text-gray-400 bg-gray-100 px-1 rounded">{{ e.payer }}付</span>
+                                    <i class="ph text-gray-300 text-xs" :class="e.paymentMethod === 'credit_card' ? 'ph-credit-card' : 'ph-coins'"></i>
+                                </div>
                              </div>
                         </div>
                     </div>
@@ -772,6 +800,33 @@
           <div class="ios-modal-footer">
             <button @click="closePreNoteModal" class="btn-ios-cancel">取消</button>
             <button @click="savePreNoteEdit" class="btn-ios-primary">儲存</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="memberModalOpen" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4" @click.self="memberModalOpen = false">
+        <div class="ios-modal-container">
+          <div class="ios-modal-header">成員管理</div>
+          <div class="ios-modal-body space-y-4">
+            <div v-if="members.length > 0" class="space-y-2">
+                 <div v-for="(m, i) in members" :key="i" class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-gray-100">
+                     <span class="font-bold text-gray-800">{{ m }}</span>
+                     <button @click="removeMember(m)" class="text-red-500 hover:bg-red-50 p-1 rounded-full"><i class="ph ph-trash text-lg"></i></button>
+                 </div>
+            </div>
+            <div v-else class="text-center text-gray-400 text-sm py-4">暫無其他成員</div>
+            
+            <div class="flex gap-2 border-t border-gray-200 pt-4">
+                <input v-model="newMemberName" @keyup.enter="addMember" class="ios-input flex-1" placeholder="輸入名字 (如: 小明)">
+                <button @click="addMember" class="bg-[#007AFF] text-white w-12 rounded-xl flex items-center justify-center shadow-md active:scale-95 transition">
+                    <i class="ph ph-plus text-xl"></i>
+                </button>
+            </div>
+           </div>
+          <div class="ios-modal-footer">
+            <button @click="memberModalOpen = false" class="btn-ios-primary">完成</button>
           </div>
         </div>
       </div>
@@ -907,7 +962,7 @@
                     </select>
                  </div>
                 
-                <div class="ios-modal-body calc-body gap-3">
+                <div class="ios-modal-body calc-body gap-2.5">
                     <div class="flex gap-2">
                         <div class="relative w-24 flex-shrink-0">
                              <select v-model="newExpense.currency" class="ios-input appearance-none font-bold text-center h-12">
@@ -928,16 +983,41 @@
                          <input v-model="newExpense.date" type="date" class="ios-input w-32 text-gray-600 text-sm h-10 text-center">
                     </div>
 
-                    <div class="flex gap-2 mb-1">
+                     <div class="flex flex-col gap-1">
+                        <label class="text-[10px] text-gray-400 font-bold uppercase ml-1">誰先付?</label>
+                        <div class="chip-scroll">
+                            <button v-for="m in members" :key="m" 
+                                @click="newExpense.payer = m"
+                                class="chip-btn"
+                                :class="newExpense.payer === m ? 'active' : 'inactive'">
+                                {{ m }}
+                            </button>
+                        </div>
+                     </div>
+
+                     <div class="flex flex-col gap-1">
+                        <label class="text-[10px] text-gray-400 font-bold uppercase ml-1">誰參與?</label>
+                        <div class="chip-scroll">
+                            <button @click="toggleAllInvolved" class="chip-btn text-xs" :class="newExpense.involved.length === members.length ? 'active' : 'inactive'">全員</button>
+                            <button v-for="m in members" :key="m" 
+                                @click="toggleInvolved(m)"
+                                class="chip-btn"
+                                :class="newExpense.involved.includes(m) ? 'active' : 'inactive'">
+                                {{ m }}
+                            </button>
+                        </div>
+                     </div>
+
+                    <div class="flex gap-2 mt-1">
                         <button @click="newExpense.paymentMethod='cash'" 
-                             class="flex-1 h-14 rounded-xl font-bold text-sm flex flex-col items-center justify-center gap-0.5 transition-all border border-transparent"
+                             class="flex-1 h-12 rounded-xl font-bold text-sm flex flex-col items-center justify-center gap-0.5 transition-all border border-transparent"
                              :class="newExpense.paymentMethod==='cash' ? 'bg-[#34C759] text-white shadow-md' : 'bg-gray-100 text-gray-400 border-gray-200'">
-                             <i class="ph ph-coins text-xl"></i> 現金
+                             <i class="ph ph-coins text-lg"></i> 現金
                         </button>
                         <button @click="newExpense.paymentMethod='credit_card'" 
-                             class="flex-1 h-14 rounded-xl font-bold text-sm flex flex-col items-center justify-center gap-0.5 transition-all border border-transparent"
+                             class="flex-1 h-12 rounded-xl font-bold text-sm flex flex-col items-center justify-center gap-0.5 transition-all border border-transparent"
                              :class="newExpense.paymentMethod==='credit_card' ? 'bg-[#007AFF] text-white shadow-md' : 'bg-gray-100 text-gray-400 border-gray-200'">
-                             <i class="ph ph-credit-card text-xl"></i> 信用卡
+                             <i class="ph ph-credit-card text-lg"></i> 信用卡
                         </button>
                     </div>
 
@@ -1038,7 +1118,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     createApp({
       setup() {
-        const appVersion = ref('v251219-5.01'); // Version Updated
+        const appVersion = ref('v251219-5.02'); // Version Updated
         const currentTab = ref('準備'); 
         const selectedDay = ref(0); 
 
@@ -1141,7 +1221,7 @@
         const expenses = ref([]);
         const expenseModalOpen = ref(false);
         const expenseFilter = ref('all');
-        const newExpense = reactive({});
+        const newExpense = reactive({involved: []});
         const infoList = ref([]);
         const infoModalOpen = ref(false);
         const newInfoItem = reactive({});
@@ -1151,6 +1231,72 @@
         const editingPreNote = reactive({});
         const flightModalOpen = ref(false);
         const newFlight = reactive({});
+        
+        // --- Members & Settlement ---
+        const members = ref(['我']);
+        const memberModalOpen = ref(false);
+        const newMemberName = ref('');
+
+        function addMember() {
+            if(newMemberName.value.trim() && !members.value.includes(newMemberName.value.trim())) {
+                members.value.push(newMemberName.value.trim());
+                newMemberName.value = '';
+                saveAll();
+            }
+        }
+        function removeMember(name) {
+             if(confirm(`確定移除成員 ${name}?`)) {
+                 members.value = members.value.filter(m => m !== name);
+                 saveAll();
+             }
+        }
+        function toggleInvolved(m) {
+            if(newExpense.involved.includes(m)) newExpense.involved = newExpense.involved.filter(x => x !== m);
+            else newExpense.involved.push(m);
+        }
+        function toggleAllInvolved() {
+            if (newExpense.involved.length === members.value.length) newExpense.involved = [];
+            else newExpense.involved = [...members.value];
+        }
+
+        // Settlement Calculation
+        const settlement = computed(() => {
+            if(expenses.value.length === 0) return {};
+            const balances = {};
+            // Initialize balances
+            members.value.forEach(m => balances[m] = 0);
+            const currentRate = Number(rate.value) || 4.10;
+
+            expenses.value.forEach(e => {
+                let amountInHKD = 0;
+                let amount = Number(e.amount) || 0;
+                
+                if (e.currency === 'TWD') amountInHKD = amount / currentRate;
+                else if (e.currency === 'HKD') amountInHKD = amount;
+                else if (CURRENCY_RATES[e.currency]) amountInHKD = amount / CURRENCY_RATES['USD'] * 7.8;
+                
+                // Default Payer/Participants if missing data
+                const payer = e.payer && members.value.includes(e.payer) ? e.payer : members.value[0];
+                const involved = (e.involved && e.involved.length > 0) ? e.involved.filter(m => members.value.includes(m)) : members.value;
+                if(involved.length === 0) return; // Skip if no valid involved
+
+                const splitAmount = amountInHKD / involved.length;
+
+                // Payer gets credit (positive)
+                if(balances[payer] === undefined) balances[payer] = 0;
+                balances[payer] += amountInHKD;
+
+                // Participants get debit (negative)
+                involved.forEach(inv => {
+                    if(balances[inv] === undefined) balances[inv] = 0;
+                    balances[inv] -= splitAmount;
+                });
+            });
+            
+            // Round results
+            Object.keys(balances).forEach(k => balances[k] = Math.round(balances[k]));
+            return balances;
+        });
 
         // --- Expense Categories & Calculator ---
         const expenseCats = [
@@ -1365,7 +1511,16 @@
         }
 
         function openExpenseModal(item) {
-            const def = { id: null, name:'', amount:'', currency:'TWD', category:'餐飲', paymentMethod:'cash', date: new Date().toISOString().split('T')[0] };
+            const def = { id: null, name:'', amount:'', currency:'TWD', category:'餐飲', paymentMethod:'cash', date: new Date().toISOString().split('T')[0], payer: '', involved: [] };
+            
+            // Logic for default payer/involved
+            let defaultPayer = members.value[0];
+            if (expenses.value.length > 0) {
+                 defaultPayer = expenses.value[0].payer || members.value[0];
+            }
+            def.payer = defaultPayer;
+            def.involved = [...members.value];
+
             openGenericModal(expenseModalOpen, newExpense, def, item);
         }
         function closeExpenseModal() { expenseModalOpen.value = false;
@@ -1378,6 +1533,10 @@
             } catch(e) {}
             
             if(!newExpense.name) newExpense.name = newExpense.category; // Default name
+            
+            // Safety check for members
+            if(!newExpense.payer) newExpense.payer = members.value[0];
+            if(!newExpense.involved || newExpense.involved.length === 0) newExpense.involved = [...members.value];
 
             const item = { ...newExpense, id: newExpense.id || generateId() };
             const idx = expenses.value.findIndex(e => e.id === newExpense.id);
@@ -1475,7 +1634,8 @@
                 shoppingList: shoppingList.value,
                 expenses: expenses.value,
                 infoList: infoList.value,
-                flights: flights.value
+                flights: flights.value,
+                members: members.value
             };
         }
 
@@ -1487,6 +1647,7 @@
             if(d.expenses) expenses.value = initializeListWithIds(d.expenses);
             if(d.infoList) infoList.value = initializeListWithIds(d.infoList);
             if(d.flights) flights.value = initializeListWithIds(d.flights);
+            if(d.members) members.value = d.members;
             lastSyncedAt.value = Date.now();
         }
         
@@ -1644,7 +1805,7 @@
                 }
             });
         });
-        watch([itinerary, preTripNotes, shoppingList, expenses, infoList, flights], () => saveAll(), { deep: true });
+        watch([itinerary, preTripNotes, shoppingList, expenses, infoList, flights, members], () => saveAll(), { deep: true });
         return {
            appVersion, syncState, syncStatusText, forceReloadCloud,
            currentTab, days, selectDay, selectedDay, isFlightDay,
@@ -1659,7 +1820,8 @@
            infoList, openInfoModal, closeInfoModal, saveInfoItem, removeInfo, infoModalOpen, newInfoItem,
            openAddModal, flightModalOpen, newFlight, openFlightModal, closeFlightModal, saveFlight,
            handleFileUpload, uploadStatus, tempUploadPreview, isUploading,
-           imageViewer, openImageViewer, formatNumber
+           imageViewer, openImageViewer, formatNumber,
+           members, memberModalOpen, newMemberName, addMember, removeMember, toggleInvolved, toggleAllInvolved, settlement
         };
     }
     }).mount('#app');
