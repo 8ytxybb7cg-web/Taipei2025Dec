@@ -295,6 +295,19 @@
     .hkg-style .text-2xl.font-mono { color: #FFFFFF !important; }
     .hkg-style .uppercase.tracking-widest { color: #FFFFFF !important; opacity: 0.6; }
 
+/* === HKG Style Force Reset (Default Apply) === */
+.ios-card-dark-glass.hkg-style {
+  background: #353E53 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.ios-card-dark-glass.hkg-style::before,
+.ios-card-dark-glass.hkg-style::after {
+  display: none !important;
+}
+
   </style>
 </head>
 
@@ -375,7 +388,18 @@
               <div class="dark-glass-gradient"></div>
               
               <div class="p-5 pb-2 relative z-10">
-                  <div class="flex justify-between items-center mb-1">
+                  <div class="flex justify-between items-center mb-1"> <div class="flex items-center gap-1 text-[10px] font-mono select-none">
+  <span class="px-2 py-1 rounded cursor-pointer transition"
+        :class="flightBoardStyle === 'hkg' ? 'bg-[#E9EB4F] text-black' : 'opacity-50'"
+        @click.stop="flightBoardStyle = 'hkg'">
+    HKG
+  </span>
+  <span class="px-2 py-1 rounded cursor-pointer transition"
+        :class="flightBoardStyle === 'ios' ? 'bg-white text-black' : 'opacity-50'"
+        @click.stop="flightBoardStyle = 'ios'">
+    iOS
+  </span>
+</div>
                        <div class="flex items-center gap-2 cursor-pointer active:opacity-50 transition" 
                             @click="flightBoardStyle = flightBoardStyle === 'hkg' ? 'ios' : 'hkg'"
                             title="切換顯示風格">
