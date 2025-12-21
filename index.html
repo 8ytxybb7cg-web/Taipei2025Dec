@@ -1,3 +1,5 @@
+都係gemini 好
+
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -369,7 +371,7 @@
                  </button>
               </div>
 
-              <div v-if="flightBoardStyle === 'hkg'" class="flex flex-col h-full relative z-10 w-full">
+              <div v-if="flightBoardStyle.value === 'hkg'" class="flex flex-col h-full relative z-10 w-full">
                   
                   <div class="pt-6 pb-4 text-center flex flex-col items-center justify-center relative">
                       <div class="text-[10px] text-white/50 uppercase tracking-widest font-bold mb-1">Gate</div>
@@ -1225,7 +1227,7 @@
     createApp({
       setup() {
         const appVersion = ref('v251221-5.11'); // Version Updated
-        const flightBoardStyle.value = ref('hkg'); // Default to HKG
+        const flightBoardStyle = ref('hkg'); // Styles: 'hkg' | 'ios'
         const currentTab = ref('準備'); 
         const selectedDay = ref(0); 
 
